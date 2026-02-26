@@ -21,6 +21,18 @@
 
 ---
 
+## 🎨 System Interface
+
+OSKAR features a custom-built, low-latency dashboard designed for enterprise moderation teams, commonly referred to as the "Schindler-IDE" interface.
+
+![OSKAR Dashboard Home Screen](assets/oskar_home.png)
+*Figure 1: The primary analysis interface featuring live health metrics and a minimalist, distraction-free composer.*
+
+![OSKAR Analysis Results](assets/oskar_results.png)
+*Figure 2: The Entropy-Routed Results View. Showing the overall Risk Ring, Confidence Intervals, and individual ML Module breakdowns (Toxicity, Claim Verification, Truth Graph, and User Trust priors).*
+
+---
+
 ## 🌟 My Design Philosophy
 
 When I started developing OSKAR, my goal was to move beyond the deterministic "if-then" logic of traditional filters. I wanted to build a system that reflects the complexity of real-world information. The core pillars of my implementation are:
