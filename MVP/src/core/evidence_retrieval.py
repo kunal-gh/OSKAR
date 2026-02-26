@@ -1,99 +1,112 @@
 import json
 import os
-import faiss
+import logging
+from typing import Optional, List, Dict
 import numpy as np
 import torch
 from sentence_transformers import SentenceTransformer
-from typing import Optional
+from qdrant_client import QdrantClient
+from qdrant_client.http import models as qmodels
 
-INDEX_DIR = "knowledge_base"
-INDEX_PATH = os.path.join(INDEX_DIR, "wiki.faiss")
-TEXTS_PATH = os.path.join(INDEX_DIR, "wiki_texts.json")
 SBERT_MODEL = "sentence-transformers/all-mpnet-base-v2"
+QDRANT_HOST = os.getenv("QDRANT_HOST", "localhost")
+COLLECTION_NAME = "oskar_knowledge"
 TOP_K_DEFAULT = 5
 
 
 class EvidenceRetrieval:
     """
-    SBERT + FAISS + Neo4j evidence retrieval module (v0.3 Graph-RAG).
+    SBERT + Qdrant + Neo4j evidence retrieval module (v1.0 Microservices).
 
-    On startup:
-      - If pre-built FAISS index exists on disk → loads it instantly (< 100ms)
-      - Otherwise → starts with an empty in-memory index (dev/test mode)
-      - Attempts to connect to Neo4j (bolt://localhost:7687)
-        → If Neo4j is available, graph triples augment FAISS results
-        → If Neo4j is unavailable, silently falls back to FAISS-only
-
-    Output schema for verify_claim:
-      { "verdict": "supported|refuted|uncertain", "confidence": float,
-        "evidence": str|None, "graph_triples": list[dict] }
+    Replaces FAISS with Qdrant for persistent, multi-node vector search.
     """
 
     def __init__(self, use_neo4j: bool = True):
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
         self.encoder = SentenceTransformer(SBERT_MODEL, device=self.device)
         self.dim = 768
-        self._texts: list[str] = []
         self.neo4j_layer = None
 
-        if os.path.exists(INDEX_PATH) and os.path.exists(TEXTS_PATH):
-            print(f"[EvidenceRetrieval] Loading pre-built FAISS index from {INDEX_PATH}...")
-            self.index = faiss.read_index(INDEX_PATH)
-            with open(TEXTS_PATH, "r", encoding="utf-8") as f:
-                self._texts = json.load(f)
-            print(f"[EvidenceRetrieval] Loaded {self.index.ntotal} passages.")
-        else:
-            print("[EvidenceRetrieval] No pre-built index found. Starting with empty in-memory index.")
-            self.index = faiss.IndexFlatIP(self.dim)
+        # Initialize Qdrant
+        try:
+            self.qdrant = QdrantClient(host=QDRANT_HOST, port=6333)
+            self._ensure_collection()
+            print(f"[EvidenceRetrieval] Connected to Qdrant at {QDRANT_HOST}")
+        except Exception as e:
+            logging.error(f"[EvidenceRetrieval] Qdrant connection failed: {e}")
+            self.qdrant = None
 
-        # v0.3: Try Neo4j — auto-falls back to FAISS-only if unavailable
+        # v0.3: Try Neo4j
         if use_neo4j:
             try:
                 from neo4j_knowledge_graph import KnowledgeGraph
+
                 self.neo4j_layer = KnowledgeGraph(auto_seed=True)
                 if not self.neo4j_layer.connected:
                     self.neo4j_layer = None
             except Exception as e:
                 print(f"[EvidenceRetrieval] Neo4j layer init skipped: {e}")
 
+    def _ensure_collection(self):
+        if not self.qdrant:
+            return
+        collections = self.qdrant.get_collections().collections
+        exists = any(c.name == COLLECTION_NAME for c in collections)
+        if not exists:
+            self.qdrant.create_collection(
+                collection_name=COLLECTION_NAME,
+                vectors_config=qmodels.VectorParams(size=self.dim, distance=qmodels.Distance.COSINE),
+            )
+
     # ------------------------------------------------------------------
     # Public API
     # ------------------------------------------------------------------
 
-    def add_evidence(self, texts: list[str], metadata: list[dict] = None):
-        """Add documents to the in-memory index (dev/test use)."""
-        if not texts:
+    def add_evidence(self, texts: List[str]):
+        """Add documents to the Qdrant collection."""
+        if not texts or not self.qdrant:
             return
-        embs = self.embed(texts)
-        faiss.normalize_L2(embs)
-        self.index.add(embs)
-        self._texts.extend(texts)
 
-    def embed(self, texts: list[str]) -> np.ndarray:
-        return self.encoder.encode(texts, convert_to_numpy=True).astype("float32")
+        embeddings = self.encoder.encode(texts, convert_to_numpy=True).tolist()
 
-    def retrieve(self, query: str, top_k: int = TOP_K_DEFAULT) -> list[dict]:
-        if self.index.ntotal == 0:
+        points = [
+            qmodels.PointStruct(
+                id=hash(text) % (2**63), # Simple hash for demo
+                vector=emb,
+                payload={"text": text}
+            ) for text, emb in zip(texts, embeddings)
+        ]
+
+        self.qdrant.upsert(
+            collection_name=COLLECTION_NAME,
+            points=points
+        )
+
+    def retrieve(self, query: str, top_k: int = TOP_K_DEFAULT) -> List[Dict]:
+        if not self.qdrant:
             return []
-        q_emb = self.embed([query])
-        faiss.normalize_L2(q_emb)
-        k = min(top_k, self.index.ntotal)
-        scores, indices = self.index.search(q_emb, k)
-        results = []
-        for score, idx in zip(scores[0], indices[0]):
-            if idx >= 0 and idx < len(self._texts):
-                results.append({
-                    "id": int(idx),
-                    "text": self._texts[idx],
-                    "score": float(score),  # cosine similarity (0–1)
-                })
-        return results
+
+        q_emb = self.encoder.encode([query], convert_to_numpy=True)[0].tolist()
+
+        hits = self.qdrant.search(
+            collection_name=COLLECTION_NAME,
+            query_vector=q_emb,
+            limit=top_k
+        )
+
+        return [
+            {
+                "id": hit.id,
+                "text": hit.payload["text"],
+                "score": hit.score
+            } for hit in hits
+        ]
 
     def verify_claim(self, claim: str) -> dict:
         """
-        Compare claim against FAISS knowledge base AND Neo4j graph triples (v0.3).
+        Compare claim against Qdrant knowledge base AND Neo4j graph triples (v1.0).
 
-        FAISS cosine similarity thresholds (0–1):
+        Qdrant cosine similarity thresholds (0–1):
           ≥ 0.80 → supported
           ≤ 0.50 → uncertain
           between → refuted
@@ -104,7 +117,7 @@ class EvidenceRetrieval:
         results = self.retrieve(claim, top_k=1)
         graph_triples = []
 
-        # ── FAISS verdict ──────────────────────────────────────────────
+        # ── Qdrant verdict ──────────────────────────────────────────────
         if not results:
             verdict, conf = "uncertain", 0.0
             best_text = None
@@ -130,7 +143,7 @@ class EvidenceRetrieval:
                     if verdict in ("supported", "uncertain"):
                         conf = min(1.0, conf + boost)
                     # If graph directly contradicts the claim text, boost refuted signal
-                    # (a full NLI check is Phase 14; for now, trust FAISS verdict)
+                    # (a full NLI check is Phase 14; for now, trust Qdrant verdict)
             except Exception as e:
                 print(f"[Neo4j] Query failed: {e}")
 
@@ -140,4 +153,3 @@ class EvidenceRetrieval:
             "evidence": best_text,
             "graph_triples": graph_triples,
         }
-

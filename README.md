@@ -83,6 +83,33 @@ graph TD
 
 ---
 
+## 🚀 Hybrid Microservice Architecture (v1.0)
+
+To achieve enterprise-grade scale while maintaining **$0 infrastructure costs**, I've transitioned OSKAR from a monolithic bridge to a **Hybrid Asynchronous Architecture**. This setup decouples heavy ML inference from the API gateway, utilizing a local Docker-orchestrated cluster.
+
+### **The Decoupled Ecosystem**
+*   **API Gateway (FastAPI)**: A lightweight entry point that handles authentication, rate limiting, and task submission.
+*   **Asynchronous Workers (Celery + Redis)**: Heavy Whisper audio transcription and Tesseract OCR tasks are offloaded to background workers, preventing event-loop blocking.
+*   **Persistent Trust Engine (Postgres)**: Migrated from volatile memory to a persistent relational database to maintain long-term user trust priors.
+*   **Production Vector Search (Qdrant)**: Replaced FAISS with Qdrant, providing a centralized, high-performance vector database for semantic evidence retrieval across multiple worker nodes.
+
+```mermaid
+graph LR
+    USER((User/Client)) --> API[FastAPI Gateway]
+    API --> REDIS[(Redis Broker)]
+    REDIS --> WORKER[Celery Worker Cluster]
+    
+    subgraph "Persistent Storage"
+        WORKER --> PG[(PostgreSQL: Trust)]
+        WORKER --> QDR[(Qdrant: Vector DB)]
+        WORKER --> NEO[(Neo4j: Knowledge Graph)]
+    end
+    
+    WORKER --> ML[ML Inference Models]
+```
+
+---
+
 ## 🔬 Machine Learning Deep Dive
 
 ### I. Toxicity & Hate Classification
