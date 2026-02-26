@@ -1,5 +1,5 @@
 import time
-from claim_classifier import ClaimClassifier
+from src.models.claim_classifier import ClaimClassifier
 
 def test_claim_classifier_schema():
     classifier = ClaimClassifier(model_name="cross-encoder/nli-distilroberta-base")

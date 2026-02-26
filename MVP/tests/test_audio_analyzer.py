@@ -8,7 +8,7 @@ import struct
 import wave
 import tempfile
 import pytest
-from audio_analyzer import AudioAnalyzer
+from src.models.audio_analyzer import AudioAnalyzer
 
 
 def _make_tiny_wav(path: str, duration_s: float = 0.1, sample_rate: int = 16000):

@@ -1,4 +1,4 @@
-from cognitive_engine import CognitiveEngine
+from src.core.cognitive_engine import CognitiveEngine
 
 def test_temperature_scaling():
     ce = CognitiveEngine(temperature=2.0)

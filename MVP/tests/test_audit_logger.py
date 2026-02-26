@@ -3,7 +3,7 @@ import json
 import uuid
 import pytest
 from pathlib import Path
-from audit_logger import AuditLogger, AUDIT_LOG_FILE
+from src.infra.audit_logger import AuditLogger, AUDIT_LOG_FILE
 
 def test_audit_logger_creates_file():
     """Ensure the logger creates the directory and file if it doesn't exist."""

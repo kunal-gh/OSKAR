@@ -34,7 +34,7 @@ Usage:
 import hashlib
 import time
 from typing import Literal
-from redis_cache import redis_cache
+from src.infra.redis_cache import redis_cache
 
 Action = Literal["impression", "ack", "retraction"]
 Variant = Literal["A", "B", "C"]

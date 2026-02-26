@@ -4,7 +4,7 @@ Tests BurstDetector initialization, schema, normal traffic, and burst detection.
 """
 
 import pytest
-from burst_detector import BurstDetector
+from src.core.burst_detector import BurstDetector
 
 
 def _make_events(user_counts: list, base_ts: int = 1708000000, interval_s: int = 60):

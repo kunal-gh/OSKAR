@@ -8,21 +8,21 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from typing import List, Dict, Any, Optional
-from hate_classifier import HateClassifier
-from claim_classifier import ClaimClassifier
-from evidence_retrieval import EvidenceRetrieval
-from cognitive_engine import CognitiveEngine
-from trust_engine import TrustEngine
-from risk_fusion import RiskFusionEngine
-from gnn_detector import GNNDetector
-from audio_analyzer import AudioAnalyzer
-from ocr_analyzer import OCRAnalyzer
-from burst_detector import BurstDetector
-from multilingual_adapter import MultilingualAdapter
-from warning_tracker import WarningTracker
-from narrative_tracker import NarrativeTracker
-from drift_detector import DriftDetector
-from pii_scrubber import PIIScrubber
+from src.models.hate_classifier import HateClassifier
+from src.models.claim_classifier import ClaimClassifier
+from src.core.evidence_retrieval import EvidenceRetrieval
+from src.core.cognitive_engine import CognitiveEngine
+from src.core.trust_engine import TrustEngine
+from src.models.risk_fusion import RiskFusionEngine
+from src.core.gnn_detector import GNNDetector
+from src.models.audio_analyzer import AudioAnalyzer
+from src.models.ocr_analyzer import OCRAnalyzer
+from src.core.burst_detector import BurstDetector
+from src.models.multilingual_adapter import MultilingualAdapter
+from src.core.warning_tracker import WarningTracker
+from src.core.narrative_tracker import NarrativeTracker
+from src.models.drift_detector import DriftDetector
+from src.infra.pii_scrubber import PIIScrubber
 from prometheus_client import make_asgi_app, Counter, Histogram
 from fastapi.security import APIKeyHeader
 

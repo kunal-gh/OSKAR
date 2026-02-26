@@ -1,5 +1,5 @@
 import numpy as np
-from cognitive_engine import CognitiveEngine
+from src.core.cognitive_engine import CognitiveEngine
 
 class RiskFusionEngine:
     def __init__(self, num_simulations=1000):

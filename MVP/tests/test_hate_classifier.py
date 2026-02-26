@@ -1,5 +1,5 @@
 import time
-from hate_classifier import HateClassifier
+from src.models.hate_classifier import HateClassifier
 
 def test_hate_classifier_schema():
     classifier = HateClassifier()

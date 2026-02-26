@@ -25,8 +25,8 @@ Usage:
 import uuid
 import time
 from typing import Optional
-from ab_testing import ABTestingEngine
-from redis_cache import redis_cache
+from src.core.ab_testing import ABTestingEngine
+from src.infra.redis_cache import redis_cache
 
 class WarningTracker:
     """

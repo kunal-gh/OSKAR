@@ -1,4 +1,4 @@
-from risk_fusion import RiskFusionEngine
+from src.models.risk_fusion import RiskFusionEngine
 
 def test_risk_fusion_schema():
     engine = RiskFusionEngine(num_simulations=10)

@@ -1,6 +1,6 @@
 import pytest
-from compliance_manager import RegionMode, ComplianceManager
-from risk_fusion import RiskFusionEngine
+from src.api.compliance_manager import RegionMode, ComplianceManager
+from src.models.risk_fusion import RiskFusionEngine
 
 def test_compliance_profiles_exist():
     # Ensure all 3 regions yield valid profiles

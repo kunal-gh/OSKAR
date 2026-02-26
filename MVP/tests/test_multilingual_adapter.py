@@ -4,7 +4,7 @@ Tests MultilingualAdapter: init, language detection, schema, and translation.
 """
 
 import pytest
-from multilingual_adapter import MultilingualAdapter, SUPPORTED_LANGUAGES
+from src.models.multilingual_adapter import MultilingualAdapter, SUPPORTED_LANGUAGES
 
 
 def test_multilingual_adapter_initialization():

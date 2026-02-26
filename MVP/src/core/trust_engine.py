@@ -1,5 +1,5 @@
 import datetime
-from redis_cache import redis_cache
+from src.infra.redis_cache import redis_cache
 
 class TrustEngine:
     """
