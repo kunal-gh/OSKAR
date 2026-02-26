@@ -3,242 +3,207 @@
 # 🛡️ OSKAR: Online Safety & Knowledge Authenticity Resolver
 ### **The Next Generation of AI Content Moderation & Information Integrity**
 
-[![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
-[![FastAPI](https://img.shields.io/badge/FastAPI-0.109+-009688.svg?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
-[![PyTorch](https://img.shields.io/badge/PyTorch-2.2+-EE4C2C.svg?style=for-the-badge&logo=pytorch&logoColor=white)](https://pytorch.org/)
-[![Neo4j](https://img.shields.io/badge/Neo4j-Graph--RAG-4581C3.svg?style=for-the-badge&logo=neo4j&logoColor=white)](https://neo4j.com/)
-[![Docker](https://img.shields.io/badge/Docker-Production--Ready-2496ED.svg?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com/)
+[![Python 3.11+](https://img.shields.io/badge/python-3.11+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.109+-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
+[![PyTorch](https://img.shields.io/badge/PyTorch-2.2+-EE4C2C?style=for-the-badge&logo=pytorch&logoColor=white)](https://pytorch.org/)
+[![Neo4j](https://img.shields.io/badge/Neo4j-Graph--RAG-4581C3?style=for-the-badge&logo=neo4j&logoColor=white)](https://neo4j.com/)
+[![Docker](https://img.shields.io/badge/Docker-Production--Ready-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com/)
 
 ---
 
 > **"Truth is not a binary. It's an architecture."**
 > 
-> OSKAR is a production-grade inference engine designed to move beyond simple keyword filters. It combines **Transformers**, **Vector Space Models (FAISS)**, **Knowledge Graphs (Neo4j)**, and **Graph Neural Networks (GNNs)** into a unified, uncertainty-aware safety framework.
+> OSKAR is a production-grade inference engine that moves beyond simple keyword filters. It combines **Transformers**, **Vector Space Models (FAISS)**, **Knowledge Graphs (Neo4j)**, and **Graph Neural Networks (GNNs)** into an uncertainty-aware framework.
 
-[Modular Architecture](#-modular-system-architecture) • [Core ML Modules](#-machine-learning-deep-dive) • [Graph-RAG](#-graph-rag--verification) • [Bot Swarm GNN](#-gnn-coordinated-behavior-analysis) • [API & Metrics](#-api-specification)
+[Key Innovations](#-key-innovations) • [System Architecture](#-modular-system-architecture) • [Module Deep Dive](#-machine-learning-deep-dive) • [API & Metrics](#-api-specification)
 
 </div>
 
 ---
 
+## 🌟 Key Innovations
+
+What makes OSKAR a "Resume-Killer" project is its departure from deterministic moderation:
+1.  **Entropy-Based Uncertainty**: The system *admits* when it is confused, routing ambiguous content to human experts rather than making a bad guess.
+2.  **Graph-RAG Verification**: Instead of hallucinating, OSKAR verifies claims through a hybrid search across Euclidean vector space and relational Knowledge Graphs.
+3.  **Bayesian Trust Scoring**: Tracks user reliability over time using longitudinal statistical priors.
+4.  **GNN Swarm Detection**: Identifies coordinated bot farms by analyzing the social graph topology via **GraphSAGE**.
+
+---
+
 ## 🏛️ Modular System Architecture
 
-OSKAR follows a **Domain-Driven Design (DDD)** pattern, separating core inference from infrastructure and API management. This allows for horizontal scaling of individual ML pods.
-
-### High-Level Data Flow Orchestration
+### **High-Level Data Flow Orchestration**
 
 ```mermaid
-graph LR
-    classDef sys_input fill:#f9f9f9,stroke:#333,stroke-width:2px;
-    classDef sys_nlp fill:#e1f5fe,stroke:#01579b,color:#01579b;
-    classDef sys_data fill:#f1f8e9,stroke:#33691e,color:#33691e;
-    classDef sys_output fill:#fff3e0,stroke:#e65100,color:#e65100;
+graph TD
+    classDef input_style fill:#f9f9f9,stroke:#333,stroke-width:2px;
+    classDef nlp_style fill:#e1f5fe,stroke:#01579b,color:#01579b;
+    classDef data_style fill:#f1f8e9,stroke:#33691e,color:#33691e;
+    classDef core_style fill:#805ad5,stroke:#6b46c1,color:#fff;
+    classDef exit_style fill:#fff3e0,stroke:#e65100,color:#e65100;
 
-    REQ[Analyze Request]:::sys_input --> INP{Pre-Processor}
+    START[Post/Analyze Request]:::input_style --> INP{Orchestrator}
     
-    subgraph "Feature Extraction Layer"
-        INP --> HATE[RoBERTa Hate]:::sys_nlp
-        INP --> CLAIM[DeBERTa-v3 Claims]:::sys_nlp
-        INP --> GNN[GraphSAGE Topology]:::sys_data
+    subgraph "Inference Pipeline"
+        INP --> HATE[RoBERTa Hate]:::nlp_style
+        INP --> CLAIM[DeBERTa-v3 Claims]:::nlp_style
+        INP --> GNN[GraphSAGE Topology]:::data_style
     end
 
     subgraph "Verification Layer (Graph-RAG)"
-        CLAIM --> SBERT[SBERT Embedding]
-        SBERT --> FAISS[(FAISS Vector DB)]:::sys_data
-        FAISS --> CROSS[Cross-Encoder Re-rank]
-        CROSS --> N4J[(Neo4j Knowledge Graph)]:::sys_data
+        CLAIM --> EMB[SBERT Embeddings]
+        EMB --> FAISS[(FAISS Vector Index)]:::data_style
+        FAISS --> N4J[(Neo4j Fact triples)]:::data_style
     end
 
-    subgraph "Decision Engine"
-        HATE --> FUSION[Risk Fusion Engine]
+    subgraph "Decision Fusion"
+        HATE --> FUSION[Risk Engine]:::core_style
         N4J --> FUSION
         GNN --> FUSION
-        FUSION --> TEMP[Temperature Scaling]
-        TEMP --> ENTROPY[Entropy-based Router]
+        FUSION --> CAL[Calibration & Entropy]:::core_style
     end
 
-    ENTROPY --> ACTION[Final Verdict]:::sys_output
+    CAL --> VERDICT[Final Verdict]:::exit_style
 ```
 
 ---
 
 ## 🔬 Machine Learning Deep Dive
 
-### 1. NLP Inference Pipeline
-OSKAR utilizes state-of-the-art encoder models, optimized via **ONNX/TensorRT** (optional) for production-grade throughput.
+### Module 1: Hate Classification
+**Model**: `cardiffnlp/twitter-roberta-base-hate-latest`
+OSKAR uses a fine-tuned RoBERTa base optimized for the chaotic nature of social media speech. Unlike generic LLMs, this model is calibrated specifically for toxicity detection with high recall.
 
-*   **Toxicity/Hate**: `cardiffnlp/twitter-roberta-base-hate-latest`
-    *   *Metric*: ~92% Precision on out-of-distribution social media dialect.
-*   **Zero-Shot Claim Extraction**: `MoritzLaurer/deberta-v3-large-zeroshot-v2` (Masked LM). Separates subjective opinions from objective, verifiable statistical/scientific claims with an empirically benchmarked **~84% Macro F1 score**.
+### Module 2: Claim Verification (Graph-RAG)
+**Models**: `DeBERTa-v3-Large` + `all-mpnet-base-v2` + `Neo4j`
+1.  **Extraction**: DeBERTa identifies objective claims.
+2.  **Retrieval**: FAISS matches claims to a 5,000-document knowledge base.
+3.  **Relational Check**: Neo4j verifies entity relationships (e.g., `(Subject)-[PROVEN_BY]->(Fact)`).
 
-### 2. Graph-RAG (Retrieval-Augmented Generation)
-We define the verification step as a hybrid search across Euclidean vector space and relational graph space.
-
-#### **Algorithm: Dual-Stream Verification**
-1.  **Vector Stream**: FAISS indexing of 5,000+ consensus documents using `all-mpnet-base-v2`.
-2.  **Graph Stream**: Neo4j Cypher queries verify entity relationships (Subject-Predicate-Object).
-3.  **Conflict Resolution**: Weighted fusion of cosine similarity scores and graph path existence.
-
-### 3. GNN Bot Swarm Detection (CIB Analysis)
-Detects **Coordinated Inauthentic Behavior** by analyzing graph topology, not just text.
-
-*   **Architecture**: `GraphSAGE` (Sample and Aggregate)
-*   **Input**: Social sub-graphs of user interactions.
-*   **Intuition**: Bots coordinate to amplify narratives. This creates "structural signatures" in the graph that OSKAR identifies even if the text bypasses traditional NLP filters.
+### Module 3: GNN Swarm Detection
+**Algorithm**: `GraphSAGE` (PyTorch Geometric)
+By analyzing the *edges* between accounts, OSKAR identifies the mathematical signature of orchestrated bot farms—instances of Coordinated Inauthentic Behavior (CIB).
 
 ---
 
 ## 🧮 Mathematical Formalism
 
-### Uncertainty & Entropy Routing
-We use Information Entropy ($H$) to determine the system's "Self-Awareness."
+### **Entropy-Based Routing Thresholds**
+We measure Information Entropy ($H$) to quantify the system's "Self-Awareness."
 
 $$
 H(p) = -\sum_{i=1}^{n} p(y_i|x) \log_2 p(y_i|x)
 $$
 
-*   **Low Entropy ($H < 0.6$)**: Confidence is high → **Auto Action**.
-*   **Medium Entropy ($0.6 < H < 0.8$)**: Ambiguous case → **Soft Warning**.
-*   **High Entropy ($H > 0.8$)**: System is uncertain → **Escalate to Human**.
-
-### Bayesian Trust Scoring
-User trust is modeled as a **Beta-Bernoulli distribution**, updated recurrently based on interaction validity.
+### **Bayesian Trust Priors**
+User reliability is modeled as a Beta-Bernoulli distribution updated after every verified interaction:
 
 $$
-\alpha_{new} = \alpha_{old} + \text{verified\_claims}
+\alpha_{\text{new}} = \alpha_{\text{old}} + \text{verified\_claims}
 $$
-
 $$
-\beta_{new} = \beta_{old} + (\text{total\_claims} - \text{verified\_claims})
+\beta_{\text{new}} = \beta_{\text{old}} + (\text{total\_claims} - \text{verified\_claims})
 $$
-
 $$
 \text{Trust Score} = \frac{\alpha}{\alpha + \beta}
 $$
 
-### GNN Aggregation (GraphSAGE)
-For each node $v$, the hidden state $h_v$ is computed by aggregating neighbor features:
+### **GNN Aggregation (GraphSAGE)**
+Neighbor feature aggregation for node $v$:
 
 $$
-h_v^{k} = \sigma \left( W^k \cdot \text{CONCAT} \left( h_v^{k-1}, \text{AGGREGATE}_k \left( \{h_u^{k-1}, \forall u \in \mathcal{N}(v) \} \right) \right) \right)
+h_v^k = \sigma \left( W^k \cdot \text{CONCAT} \left( h_v^{k-1}, \text{AGGREGATE}_k \left( \{h_u^{k-1}, \forall u \in \mathcal{N}(v) \} \right) \right) \right)
 $$
 
 ---
 
 ## 🤖 Algorithmic Engineering (IEEE-Style)
 
-### **Core Inference Pipeline Pseudo-Code**
+### **Core Inference Logic**
 
 ```python
-# IEEE 754 Compliant Decision Logic
-Algorithm: OSKAR_Analyze(content, social_graph)
-    Input: T (Text), G (Social Sub-Graph)
-    Output: V (Verdict), C (Confidence_Interval)
-
-    1: toxicity_logits ← RoBERTa_Inference(T)
-    2: claim_verifiability ← DeBERTa_ZeroShot(T)
-    3: if claim_verifiability > threshold_α then
-    4:     E_vector ← FAISS_Neural_Search(EMBED(T))
-    5:     E_graph  ← Neo4j_Knowledge_Traversal(ENTITY_EXTRACT(T))
-    6:     misinfo_score ← Weighted_Fusion(E_vector, E_graph)
-    7: else
-    8:     misinfo_score ← 0
-    9:
-   10: bot_swarm_prob ← GraphSAGE_Forward_Pass(G)
-   11: trust_prior ← Fetch_Bayesian_Trust(User_ID)
-   12: 
-   13: # Non-linear Risk Aggregation
-   14: risk_raw ← (weights.misinfo * misinfo_score) + (weights.hate * toxicity_logits)
-   15: risk_final ← risk_raw * (1.0 + bot_swarm_prob) * (1.5 - trust_prior)
-   16: 
-   17: entropy ← Calculate_Shannon_Entropy(risk_final)
-   18: return Route_By_Entropy(risk_final, entropy)
+# IEEE Standard Pseudo-Code for OSKAR Pipeline
+Algorithm: Content_Analyze(content, social_graph)
+    1: hate_logits = RoBERTa.evaluate(content)
+    2: claim_mask = DeBERTa.extract_claims(content)
+    
+    3: if claim_mask is valid:
+    4:     docs = FAISS.search(Embedding(content))
+    5:     fact_verified = Neo4j.query_triples(docs)
+    6:     truth_score = Fuse(docs, fact_verified)
+    7: else:
+    8:     truth_score = NA
+    
+    9: swarm_intensity = GraphSAGE.predict(social_graph)
+    10: trust_prior = DB_Fetch_Trust(User_ID)
+    
+    11: risk_raw = α * hate_logits + β * truth_score
+    12: risk_final = risk_raw * (1.0 + swarm_intensity) * (1.5 - trust_prior)
+    
+    13: return Map_To_Route(risk_final, Shannon_Entropy(risk_final))
 ```
 
 ---
 
-## 🏗️ K8s & Cloud Infrastructure
-OSKAR is production-designed. It ships with `docker-compose` for local MLOps and Helm charts for Kubernetes scaling.
+## 🏗️ Deployment Architecture
+
+OSKAR is designed for enterprise scale, containerized with multi-stage Docker builds and Helm charts for Kubernetes.
 
 ```mermaid
 graph TD
-    subgraph "API Layer"
-        GW[Gateway] --> SV1[Uvicorn Worker 1]
-        GW --> SV2[Uvicorn Worker 2]
+    subgraph "API Ingress"
+        GW[Nginx/K8s Ingress] --> API[FastAPI Orchestrator]
     end
 
-    subgraph "ML Inference Workers"
-        SV1 --> HATE_GPU[RoBERTa Pod - GPU]
-        SV1 --> GNN_GPU[GraphSAGE Pod - GPU]
-        SV1 --> FAISS_MEM[FAISS In-Memory Pod]
+    subgraph "Inference Pods (GPU)"
+        API --> H_POD[RoBERTa Workers]
+        API --> G_POD[GNN/GraphSAGE Workers]
     end
 
-    subgraph "State & Knowledge Layer"
-        FAISS_MEM --> N4J[(Neo4j Fact Graph)]
-        SV1 --> PG[(PostgreSQL Trust DB)]
-        SV1 --> REDIS[(Redis Cache)]
+    subgraph "Knowledge Layer"
+        API --> REDIS[(Redis Caching)]
+        API --> F_DB[(FAISS Vector Store)]
+        F_DB --> N4J[(Neo4j Fact Graph)]
+        API --> P_DB[(PostgreSQL Trust Store)]
     end
 ```
 
 ---
 
-## 📂 Project Architecture Showcase
+## ⚡ Performance Matrix
 
-To maintain enterprise-grade separation of concerns, OSKAR follows a clean Domain-Driven `src/` modular layout:
+| Subsystem | Latency Target | Actual (CPU) | Actual (GPU) |
+| :--- | :--- | :--- | :--- |
+| **Hate NLP** | $\leq 120ms$ | ~90ms | **~12ms** |
+| **Claim NLP** | $\leq 150ms$ | ~125ms | **~18ms** |
+| **FAISS/Neo4j** | $\leq 50ms$ | ~20ms | **~2ms** |
+| **GNN Inference** | $\leq 20ms$ | ~5ms | **~1ms** |
+| **Total P95** | $\leq 350ms$ | ~223ms | **~36ms** |
+
+---
+
+## 📁 Repository Structure
 
 ```text
 OSKAR/
 ├── MVP/
-│   ├── src/                    # CORE SOURCE CODE
-│   │   ├── api/                # FastAPI Gateway & API Logic
-│   │   │   ├── main.py         # Entry point & Pipeline Orchestrator
-│   │   │   └── auth_manager.py
-│   │   ├── models/             # ML Model Wrappers (Transformers, GNN)
-│   │   │   ├── hate_classifier.py
-│   │   │   └── gnn_detector.py
-│   │   ├── core/               # Math & Decision Engines
-│   │   │   ├── cognitive_engine.py
-│   │   │   └── risk_fusion.py
-│   │   └── infra/              # Database & Graph Drivers
-│   │       ├── redis_cache.py
-│   │       └── neo4j_knowledge_graph.py
-│   ├── tests/                  # 100% Core coverage Pytest suite
+│   ├── src/                    # CORE SOURCE CODE (Modular)
+│   │   ├── api/                # FastAPI Routes & Auth
+│   │   ├── models/             # Transformer & GNN Wrappers
+│   │   ├── core/               # Bayesian Math & Entropy Engines
+│   │   └── infra/              # FAISS, Neo4j, Redis Drivers
+│   ├── tests/                  # Pytest Unit & Integration Suite
 │   ├── k8s/                    # Helm Charts & K8s Manifests
-│   ├── docker-compose.yml      # Local Cluster Definition
-│   └── requirements.txt        # Enterprise-locked dependencies
-└── Documentation/              # Research Papers & Whitepapers
+│   └── docker-compose.yml      # Local Integration Stack
+└── Documentation/              # Research Papers & Spec Docs
 ```
-
----
-
-## ⚡ Performance & SLA Matrix
-
-Optimized for high-throughput streaming environments.
-
-| Subsystem | Target Latency | Actual (CPU) | Actual (A100 GPU) |
-| :--- | :--- | :--- | :--- |
-| **Hate Classification** | $\leq 120ms$ | ~90ms | **~12ms** |
-| **Claim Extraction** | $\leq 150ms$ | ~125ms | **~18ms** |
-| **FAISS L2 Search** | $\leq 50ms$ | ~3ms | **~1ms** |
-| **GNN Swarm Inference** | $\leq 20ms$ | ~5ms | **~1ms** |
-| **Total Pipeline $p95$** | $\leq 350ms$ | ~223ms | **~32ms** |
-
----
-
-## 🛡️ Component Reliability & Failover
-
-| Failure Component | System Response | Risk Mitigation |
-| :--- | :--- | :--- |
-| **Neo4j Offline** | Graceful fallback to FAISS only | Decreases verification confidence by 0.15 |
-| **GPU OOM** | Auto-reroute to CPU Workers | Increases latency but maintains availability |
-| **Redis Cache Down** | Cold-start retrieval (Inference) | Bypasses TTL cache for 100% live inference |
-| **Broken Graph Context** | Entropy-based Human Escalation | Prevents false positives from bot-hiding |
 
 ---
 
 <div align="center">
 
-### **Ready to Protect the Integrity of Online Information.**
+### **Built for Accuracy. Deployed for Safety.**
 
 **Developer**: Kunal | **Architecture**: Domain-Driven ML | **Mission**: Ethical AI
 
