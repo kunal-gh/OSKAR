@@ -1,4 +1,4 @@
-name: OSKAR v0.7 CI/CD Pipeline
+name: OSKAR Enterprise CI/CD Pipeline
 
 on:
   push:
@@ -7,72 +7,55 @@ on:
     branches: [ "main" ]
 
 jobs:
-  test:
-    name: Pytest & Lint
+  code-quality:
+    name: Lint & Format (Black, Isort, Flake8)
     runs-on: ubuntu-latest
-    
     steps:
     - uses: actions/checkout@v3
     
-    - name: Set up Python 3.10
+    - name: Set up Python 3.11
       uses: actions/setup-python@v4
       with:
-        python-version: "3.10"
+        python-version: "3.11"
         cache: 'pip'
         
-    - name: Install Dependencies
-      working-directory: ./MVP
+    - name: Install Code Quality Tools
       run: |
         python -m pip install --upgrade pip
-        pip install --no-cache-dir torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
-        pip install -r requirements.txt
-        # Install testing deps if not in requirements.txt
-        pip install pytest pytest-cov httpx
+        pip install black flake8 isort
         
-    - name: Install System Binaries
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y tesseract-ocr ffmpeg
-
-    - name: Run Pytest Automation Matrix
-      working-directory: ./MVP
-      run: |
-        # Run tests with coverage report
-        pytest -v --cov=. --cov-report=xml
+    - name: Format with Black (Check Only)
+      run: black --check MVP/src/ MVP/tests/
         
-    - name: Upload Coverage to Codecov
-      if: success()
-      uses: codecov/codecov-action@v3
-      with:
-        file: ./MVP/coverage.xml
-        flags: unittests
+    - name: Check Imports with Isort
+      run: isort --check-only MVP/src/ MVP/tests/
+        
+    - name: Lint with Flake8
+      run: flake8 MVP/src/ MVP/tests/
 
-  build-docker:
-    name: Build & Push Docker Image
-    needs: test
+  unit-tests:
+    name: Automated Unit Testing (Pytest)
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    
+    needs: code-quality # Run after code quality passes
     steps:
     - uses: actions/checkout@v3
-
-    - name: Log in to Docker Hub
-      uses: docker/login-action@v2
+    
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v4
       with:
-        username: ${{ secrets.DOCKER_USERNAME }}
-        password: ${{ secrets.DOCKER_PASSWORD }}
+        python-version: "3.11"
+        cache: 'pip'
         
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v2
-
-    - name: Build and Push runtime image
-      uses: docker/build-push-action@v4
-      with:
-        context: ./MVP
-        file: ./MVP/Dockerfile
-        push: true
-        tags: |
-          ${{ secrets.DOCKER_USERNAME }}/oskar-api:latest
-          ${{ secrets.DOCKER_USERNAME }}/oskar-api:${{ github.sha }}
-        cache-from: type=registry,ref=${{ secrets.DOCKER_USERNAME }}/oskar-api:buildcache
-        cache-to: type=registry,ref=${{ secrets.DOCKER_USERNAME }}/oskar-api:buildcache,mode=max
+    - name: Install Core Dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r MVP/requirements.txt
+        pip install pytest pytest-cov
+        
+    - name: Execute Test Suite
+      env:
+        OSKAR_API_KEY: "oskar-dev-secret-key-123"
+        PYTHONPATH: "."
+      run: |
+        cd MVP
+        pytest tests/ -v --cov=src --cov-report=term-missing

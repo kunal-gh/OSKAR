@@ -1,5 +1,12 @@
+from typing import TYPE_CHECKING, Optional
+
 import numpy as np
+
 from src.core.cognitive_engine import CognitiveEngine
+
+if TYPE_CHECKING:
+    from src.api.compliance_manager import ComplianceProfile
+
 
 class RiskFusionEngine:
     def __init__(self, num_simulations=1000):
@@ -8,11 +15,12 @@ class RiskFusionEngine:
 
     def calculate_risk(
         self,
-        hate_score:   float,
+        hate_score: float,
         misinfo_score: float,
-        bot_score:    float,
-        trust_score:  float,
-        burst_score:  float = 0.0
+        bot_score: float,
+        trust_score: float,
+        burst_score: float = 0.0,
+        profile: "Optional[ComplianceProfile]" = None,
     ) -> dict:
         """
         Combines all module risk signals into a Monte Carlo risk distribution.
@@ -26,7 +34,7 @@ class RiskFusionEngine:
         Returns:
           {"mean_risk": float, "confidence_interval": [low, high], "route": str}
         """
-        weights     = np.array([0.6, 0.4])
+        weights = np.array([0.6, 0.4])
         base_scores = np.array([misinfo_score, hate_score])
 
         # Trust modifier: trusted user lowers risk, bad actor amplifies it
@@ -46,23 +54,37 @@ class RiskFusionEngine:
         for _ in range(self.num_simulations):
             noise = np.random.normal(0, 0.1, 2)
             sample_scores = np.clip(adjusted_scores + noise, 0.0, 1.0)
-            sample_risk   = float(np.sum(sample_scores * weights))
+            sample_risk = float(np.sum(sample_scores * weights))
             simulated_risks.append(sample_risk)
 
         simulated_risks = np.array(simulated_risks)
-        mean_risk  = float(np.mean(simulated_risks))
-        ci_low     = float(np.percentile(simulated_risks, 2.5))
-        ci_high    = float(np.percentile(simulated_risks, 97.5))
+        mean_risk = float(np.mean(simulated_risks))
+        ci_low = float(np.percentile(simulated_risks, 2.5))
+        ci_high = float(np.percentile(simulated_risks, 97.5))
 
-        if mean_risk > 0.8:
-            route = "human_review"
-        elif mean_risk > 0.5:
-            route = "soft_warning"
+        # --- Advanced Compliance-Aware Routing ---
+        if profile:
+            # EU-style hard block for bot-driven hate/misinfo
+            # (If mean risk or bot score is extreme, and it's a regulated region)
+            if (mean_risk > (profile.hate_threshold * 0.8) and bot_score > profile.bot_threshold) or (mean_risk > 0.95):
+                route = "hard_block"
+            elif mean_risk > profile.hate_threshold:
+                route = "human_review"
+            elif mean_risk > (profile.hate_threshold * 0.7):
+                route = "soft_warning"
+            else:
+                route = "auto_action"
         else:
-            route = "auto_action"
+            # Default baseline routing
+            if mean_risk > 0.8:
+                route = "human_review"
+            elif mean_risk > 0.5:
+                route = "soft_warning"
+            else:
+                route = "auto_action"
 
         return {
-            "mean_risk":           round(mean_risk, 4),
+            "mean_risk": round(mean_risk, 4),
             "confidence_interval": [round(ci_low, 4), round(ci_high, 4)],
-            "route":               route
+            "route": route,
         }

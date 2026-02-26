@@ -32,29 +32,29 @@ Usage:
     # result = {"anomaly_score": 0.87, "is_burst": True, "window_size": 5}
 """
 
-import os
 import math
-import time
+import os
 from typing import Optional
 
+import numpy as np
 import torch
 import torch.nn as nn
-import numpy as np
 
-SEQ_LEN    = 16   # Sliding window length (time steps considered)
-INPUT_DIM  = 2    # Features: [norm_timestamp_delta, norm_user_count]
-HIDDEN_DIM = 32   # LSTM hidden state size
-LATENT_DIM = 8    # Bottleneck size
-THRESHOLD  = 0.25 # Reconstruction MSE above which we flag a burst
+SEQ_LEN = 16  # Sliding window length (time steps considered)
+INPUT_DIM = 2  # Features: [norm_timestamp_delta, norm_user_count]
+HIDDEN_DIM = 32  # LSTM hidden state size
+LATENT_DIM = 8  # Bottleneck size
+THRESHOLD = 0.25  # Reconstruction MSE above which we flag a burst
 
 
 # ─── LSTM Autoencoder Architecture ──────────────────────────────────────────
+
 
 class _LSTMEncoder(nn.Module):
     def __init__(self, input_dim, hidden_dim, latent_dim):
         super().__init__()
         self.lstm = nn.LSTM(input_dim, hidden_dim, batch_first=True)
-        self.fc   = nn.Linear(hidden_dim, latent_dim)
+        self.fc = nn.Linear(hidden_dim, latent_dim)
 
     def forward(self, x):
         _, (h, _) = self.lstm(x)
@@ -65,12 +65,12 @@ class _LSTMDecoder(nn.Module):
     def __init__(self, latent_dim, hidden_dim, input_dim, seq_len):
         super().__init__()
         self.seq_len = seq_len
-        self.fc      = nn.Linear(latent_dim, hidden_dim)
-        self.lstm    = nn.LSTM(hidden_dim, hidden_dim, batch_first=True)
-        self.out     = nn.Linear(hidden_dim, input_dim)
+        self.fc = nn.Linear(latent_dim, hidden_dim)
+        self.lstm = nn.LSTM(hidden_dim, hidden_dim, batch_first=True)
+        self.out = nn.Linear(hidden_dim, input_dim)
 
     def forward(self, z):
-        h0 = self.fc(z).unsqueeze(0)       # (1, batch, hidden)
+        h0 = self.fc(z).unsqueeze(0)  # (1, batch, hidden)
         # Repeat latent vector across the time dimension
         inp = h0.permute(1, 0, 2).expand(-1, self.seq_len, -1)  # (batch, seq, hidden)
         out, _ = self.lstm(inp, (h0, torch.zeros_like(h0)))
@@ -78,8 +78,9 @@ class _LSTMDecoder(nn.Module):
 
 
 class LSTMAutoEncoder(nn.Module):
-    def __init__(self, input_dim=INPUT_DIM, hidden_dim=HIDDEN_DIM,
-                 latent_dim=LATENT_DIM, seq_len=SEQ_LEN):
+    def __init__(
+        self, input_dim=INPUT_DIM, hidden_dim=HIDDEN_DIM, latent_dim=LATENT_DIM, seq_len=SEQ_LEN
+    ):
         super().__init__()
         self.encoder = _LSTMEncoder(input_dim, hidden_dim, latent_dim)
         self.decoder = _LSTMDecoder(latent_dim, hidden_dim, input_dim, seq_len)
@@ -90,6 +91,7 @@ class LSTMAutoEncoder(nn.Module):
 
 
 # ─── BurstDetector Public Interface ─────────────────────────────────────────
+
 
 class BurstDetector:
     """
@@ -133,27 +135,23 @@ class BurstDetector:
             return None
 
         # Extract features: [timestamp_delta, user_count]
-        timestamps   = [e.get("ts",         0.0) for e in events]
-        user_counts  = [e.get("user_count",  1)   for e in events]
+        timestamps = [e.get("ts", 0.0) for e in events]
+        user_counts = [e.get("user_count", 1) for e in events]
 
         # Compute time deltas between consecutive posts (first delta = 0)
         deltas = [0.0] + [
-            float(timestamps[i] - timestamps[i-1])
-            for i in range(1, len(timestamps))
+            float(timestamps[i] - timestamps[i - 1]) for i in range(1, len(timestamps))
         ]
 
         # Normalize
         max_delta = max(deltas) if max(deltas) > 0 else 1.0
         max_count = max(user_counts) if max(user_counts) > 0 else 1.0
-        features = [
-            [d / max_delta, c / max_count]
-            for d, c in zip(deltas, user_counts)
-        ]
+        features = [[d / max_delta, c / max_count] for d, c in zip(deltas, user_counts)]
 
         # Pad or truncate to SEQ_LEN
         if len(features) < SEQ_LEN:
             pad = [[0.0, 0.0]] * (SEQ_LEN - len(features))
-            features = pad + features   # pre-pad with zeros
+            features = pad + features  # pre-pad with zeros
         else:
             features = features[-SEQ_LEN:]  # use most recent window
 
@@ -180,18 +178,18 @@ class BurstDetector:
         if not events:
             return {
                 "anomaly_score": 0.0,
-                "is_burst":      False,
-                "window_size":   0,
-                "trained_model": self.trained
+                "is_burst": False,
+                "window_size": 0,
+                "trained_model": self.trained,
             }
 
         x = self._preprocess(events)
         if x is None:
             return {
                 "anomaly_score": 0.0,
-                "is_burst":      False,
-                "window_size":   0,
-                "trained_model": self.trained
+                "is_burst": False,
+                "window_size": 0,
+                "trained_model": self.trained,
             }
 
         # Forward pass through autoencoder
@@ -205,9 +203,9 @@ class BurstDetector:
 
         return {
             "anomaly_score": anomaly_score,
-            "is_burst":      anomaly_score > THRESHOLD,
-            "window_size":   min(len(events), SEQ_LEN),
-            "trained_model": self.trained
+            "is_burst": anomaly_score > THRESHOLD,
+            "window_size": min(len(events), SEQ_LEN),
+            "trained_model": self.trained,
         }
 
     def quick_score(self, events: list[dict]) -> float:

@@ -1,12 +1,14 @@
-import os
 from enum import Enum
-from fastapi import Security, HTTPException, status
+
+from fastapi import HTTPException, Security, status
 from fastapi.security.api_key import APIKeyHeader
+
 
 class UserRole(str, Enum):
     ADMIN = "admin"
     ANALYST = "analyst"
     SYSTEM = "system"
+
 
 # Legacy key from v0.6 for backward compatibility with Dashboard
 LEGACY_KEY = "REDACTED_USE_ENV_VAR"
@@ -15,11 +17,12 @@ LEGACY_KEY = "REDACTED_USE_ENV_VAR"
 API_KEYS = {
     "oskar-admin-key-999": UserRole.ADMIN,
     LEGACY_KEY: UserRole.ANALYST,
-    "oskar-system-key-777": UserRole.SYSTEM
+    "oskar-system-key-777": UserRole.SYSTEM,
 }
 
 API_KEY_NAME = "X-API-Key"
 api_key_header = APIKeyHeader(name=API_KEY_NAME, auto_error=False)
+
 
 def _get_role(api_key: str) -> UserRole:
     if not api_key:
@@ -35,11 +38,13 @@ def _get_role(api_key: str) -> UserRole:
         )
     return role
 
+
 def require_analyst(api_key_header: str = Security(api_key_header)) -> UserRole:
     """Allows ANALYST, ADMIN, and SYSTEM roles."""
     role = _get_role(api_key_header)
     # All roles are permitted to perform analysis
     return role
+
 
 def require_admin(api_key_header: str = Security(api_key_header)) -> UserRole:
     """Strictly allows ADMIN roles only."""
@@ -50,6 +55,7 @@ def require_admin(api_key_header: str = Security(api_key_header)) -> UserRole:
             detail=f"Forbidden: Requires ADMIN role. Your role is {role.value}",
         )
     return role
+
 
 def require_system(api_key_header: str = Security(api_key_header)) -> UserRole:
     """Allows SYSTEM and ADMIN roles for automated ingestion tasks."""
