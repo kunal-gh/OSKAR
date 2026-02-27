@@ -8,7 +8,7 @@
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.2+-EE4C2C?style=for-the-badge&logo=pytorch&logoColor=white)](https://pytorch.org/)
 [![Neo4j](https://img.shields.io/badge/Neo4j-Graph--RAG-4581C3?style=for-the-badge&logo=neo4j&logoColor=white)](https://neo4j.com/)
 [![Docker](https://img.shields.io/badge/Docker-Production--Ready-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com/)
-
+[![Vercel Live](https://img.shields.io/badge/Vercel-Live_Demo-000000?style=for-the-badge&logo=vercel&logoColor=white)](https://oskar-six.vercel.app/)
 ---
 
 > **"Truth is not a binary. It's an architecture."**
