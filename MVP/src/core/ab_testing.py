@@ -34,6 +34,7 @@ Usage:
 import hashlib
 import time
 from typing import Literal
+
 from src.infra.redis_cache import redis_cache
 
 Action = Literal["impression", "ack", "retraction"]
@@ -45,12 +46,14 @@ VARIANT_NAMES = {
     "C": "Social Proof Warning",
 }
 
+
 class ABTestingEngine:
     """
     v0.7 Redis-backed A/B tester for warning variant effectiveness.
     """
+
     def __init__(self):
-        pass # Relies on global redis_cache
+        pass  # Relies on global redis_cache
 
     def get_variant(self, user_id: str) -> Variant:
         """Deterministically assign a warning variant to a user."""
@@ -61,19 +64,20 @@ class ABTestingEngine:
 
         h = int(hashlib.md5(user_id.encode()).hexdigest(), 16)
         variant = ["A", "B", "C"][h % 3]
-        redis_cache.set(uv_key, variant, ttl_seconds=60*60*24*30)
+        redis_cache.set(uv_key, variant, ttl_seconds=60 * 60 * 24 * 30)
         return variant
 
     def record_impression(self, user_id: str, variant: Variant) -> None:
         """Record that a warning was shown to the user."""
         redis_cache.incr(f"ab:stats:{variant}:impressions")
-        
+
         # Log event (simplified append via incremental key for v0.7)
         log_id = redis_cache.incr("ab:log_counter")
-        redis_cache.set(f"ab:log:{log_id}", {
-            "ts": time.time(), "user_id": user_id,
-            "variant": variant, "action": "impression"
-        }, ttl_seconds=60*60*24*7)
+        redis_cache.set(
+            f"ab:log:{log_id}",
+            {"ts": time.time(), "user_id": user_id, "variant": variant, "action": "impression"},
+            ttl_seconds=60 * 60 * 24 * 7,
+        )
 
     def record_feedback(self, user_id: str, variant: Variant, action: Action) -> None:
         if action not in ("impression", "ack", "retraction"):
@@ -83,10 +87,11 @@ class ABTestingEngine:
             redis_cache.incr(f"ab:stats:{variant}:{action}s")
 
         log_id = redis_cache.incr("ab:log_counter")
-        redis_cache.set(f"ab:log:{log_id}", {
-            "ts": time.time(), "user_id": user_id,
-            "variant": variant, "action": action
-        }, ttl_seconds=60*60*24*7)
+        redis_cache.set(
+            f"ab:log:{log_id}",
+            {"ts": time.time(), "user_id": user_id, "variant": variant, "action": action},
+            ttl_seconds=60 * 60 * 24 * 7,
+        )
 
     def get_report(self) -> dict:
         report = {}
@@ -98,16 +103,16 @@ class ABTestingEngine:
             imp = int(redis_cache.get(f"ab:stats:{v}:impressions") or 0)
             acks = int(redis_cache.get(f"ab:stats:{v}:acks") or 0)
             rets = int(redis_cache.get(f"ab:stats:{v}:retractions") or 0)
-            
-            ctr  = round(acks / imp, 4) if imp > 0 else 0.0
-            rr   = round(rets / imp, 4) if imp > 0 else 0.0
-            
+
+            ctr = round(acks / imp, 4) if imp > 0 else 0.0
+            rr = round(rets / imp, 4) if imp > 0 else 0.0
+
             report[v] = {
-                "name":            VARIANT_NAMES[v],
-                "impressions":     imp,
-                "acks":            acks,
-                "retractions":     rets,
-                "ctr":             ctr,
+                "name": VARIANT_NAMES[v],
+                "impressions": imp,
+                "acks": acks,
+                "retractions": rets,
+                "ctr": ctr,
                 "retraction_rate": rr,
             }
             if rr > best_rate:
@@ -116,7 +121,7 @@ class ABTestingEngine:
 
         total_logs = int(redis_cache.get("ab:log_counter") or 0)
         return {
-            "variants":     report,
+            "variants": report,
             "total_events": total_logs,
             "best_variant": best_variant,
         }

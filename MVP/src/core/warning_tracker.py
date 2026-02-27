@@ -22,11 +22,13 @@ Usage:
     tracker.log_feedback(event["event_id"], action="retraction")
 """
 
-import uuid
 import time
+import uuid
 from typing import Optional
+
 from src.core.ab_testing import ABTestingEngine
 from src.infra.redis_cache import redis_cache
+
 
 class WarningTracker:
     """
@@ -42,46 +44,44 @@ class WarningTracker:
         user_id: str,
         risk_score: float = 0.0,
         route: str = "soft_warning",
-        content_hash: Optional[str] = None
+        content_hash: Optional[str] = None,
     ) -> dict:
-        variant    = self.ab.get_variant(user_id)
-        event_id   = str(uuid.uuid4())
-        ts         = time.time()
+        variant = self.ab.get_variant(user_id)
+        event_id = str(uuid.uuid4())
+        ts = time.time()
 
         event = {
-            "event_id":     event_id,
-            "user_id":      user_id,
-            "variant":      variant,
-            "risk_score":   round(risk_score, 4),
-            "route":        route,
+            "event_id": event_id,
+            "user_id": user_id,
+            "variant": variant,
+            "risk_score": round(risk_score, 4),
+            "route": route,
             "content_hash": content_hash,
-            "ts":           ts,
-            "action":       "impression",
+            "ts": ts,
+            "action": "impression",
         }
-        
-        redis_cache.set(f"warning:event:{event_id}", event, ttl_seconds=60*60*24*7)
+
+        redis_cache.set(f"warning:event:{event_id}", event, ttl_seconds=60 * 60 * 24 * 7)
         self.ab.record_impression(user_id, variant)
         return event
 
-    def log_feedback(
-        self,
-        event_id: str,
-        action: str   # "ack" | "retraction"
-    ) -> dict:
+    def log_feedback(self, event_id: str, action: str) -> dict:  # "ack" | "retraction"
         key = f"warning:event:{event_id}"
         original = redis_cache.get(key)
-        
+
         if not original:
             return {"error": f"Event '{event_id}' not found"}
 
         feedback = {
             **original,
-            "action":     action,
-            "ts":         time.time(),
+            "action": action,
+            "ts": time.time(),
             "latency_ms": round((time.time() - original["ts"]) * 1000, 1),
         }
-        
-        redis_cache.set(f"warning:event:{event_id}_{action}", feedback, ttl_seconds=60*60*24*7)
+
+        redis_cache.set(
+            f"warning:event:{event_id}_{action}", feedback, ttl_seconds=60 * 60 * 24 * 7
+        )
         self.ab.record_feedback(original["user_id"], original["variant"], action)
         return feedback
 
@@ -97,6 +97,6 @@ class WarningTracker:
             doc = redis_cache.get(k)
             if doc:
                 events.append(doc)
-                
+
         events = sorted(events, key=lambda e: e["ts"], reverse=True)
         return events[:limit]

@@ -9,7 +9,7 @@ pandas
 scikit-learn
 pydantic
 sqlalchemy
-psycopg2
+psycopg2-binary
 celery
 redis
 prometheus-client

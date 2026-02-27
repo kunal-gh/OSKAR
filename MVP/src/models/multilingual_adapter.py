@@ -45,21 +45,21 @@ Usage:
 
 import os
 import time
-from typing import Optional, Callable
+from typing import Callable, Optional
 
 # Supported language codes → display name + Helsinki-NLP model suffix
 SUPPORTED_LANGUAGES = {
-    "hi": ("Hindi",      "Helsinki-NLP/opus-mt-hi-en"),
-    "es": ("Spanish",    "Helsinki-NLP/opus-mt-es-en"),
-    "ar": ("Arabic",     "Helsinki-NLP/opus-mt-ar-en"),
-    "fr": ("French",     "Helsinki-NLP/opus-mt-fr-en"),
-    "de": ("German",     "Helsinki-NLP/opus-mt-de-en"),
+    "hi": ("Hindi", "Helsinki-NLP/opus-mt-hi-en"),
+    "es": ("Spanish", "Helsinki-NLP/opus-mt-es-en"),
+    "ar": ("Arabic", "Helsinki-NLP/opus-mt-ar-en"),
+    "fr": ("French", "Helsinki-NLP/opus-mt-fr-en"),
+    "de": ("German", "Helsinki-NLP/opus-mt-de-en"),
     "pt": ("Portuguese", "Helsinki-NLP/opus-mt-ROMANCE-en"),
-    "ru": ("Russian",    "Helsinki-NLP/opus-mt-ru-en"),
+    "ru": ("Russian", "Helsinki-NLP/opus-mt-ru-en"),
     "zh-cn": ("Chinese", "Helsinki-NLP/opus-mt-zh-en"),
     "zh-tw": ("Chinese", "Helsinki-NLP/opus-mt-zh-en"),
-    "ja": ("Japanese",   "Helsinki-NLP/opus-mt-ja-en"),
-    "ko": ("Korean",     "Helsinki-NLP/opus-mt-ko-en"),
+    "ja": ("Japanese", "Helsinki-NLP/opus-mt-ja-en"),
+    "ko": ("Korean", "Helsinki-NLP/opus-mt-ko-en"),
 }
 
 
@@ -72,14 +72,15 @@ class MultilingualAdapter:
     """
 
     def __init__(self):
-        self._translators: dict = {}   # lang_code → (tokenizer, model)
+        self._translators: dict = {}  # lang_code → (tokenizer, model)
         self.langdetect_ready = False
         self._init_langdetect()
 
     def _init_langdetect(self):
         try:
-            from langdetect import detect, DetectorFactory
-            DetectorFactory.seed = 42   # Deterministic results
+            from langdetect import DetectorFactory, detect
+
+            DetectorFactory.seed = 42  # Deterministic results
             self.langdetect_ready = True
             print("[MultilingualAdapter] langdetect ready.")
         except ImportError:
@@ -98,6 +99,7 @@ class MultilingualAdapter:
 
         try:
             from langdetect import detect_langs
+
             results = detect_langs(text)
             if results:
                 top = results[0]
@@ -123,9 +125,10 @@ class MultilingualAdapter:
         _, model_name = SUPPORTED_LANGUAGES[lang_code]
         try:
             from transformers import MarianMTModel, MarianTokenizer
+
             print(f"[MultilingualAdapter] Loading translation model '{model_name}'...")
             tokenizer = MarianTokenizer.from_pretrained(model_name)
-            model     = MarianMTModel.from_pretrained(model_name)
+            model = MarianMTModel.from_pretrained(model_name)
             self._translators[lang_code] = (tokenizer, model)
             print(f"[MultilingualAdapter] '{model_name}' ready.")
             return (tokenizer, model)
@@ -147,7 +150,9 @@ class MultilingualAdapter:
 
         tokenizer, model = translator
         try:
-            inputs = tokenizer([text], return_tensors="pt", padding=True, truncation=True, max_length=512)
+            inputs = tokenizer(
+                [text], return_tensors="pt", padding=True, truncation=True, max_length=512
+            )
             outputs = model.generate(**inputs, max_new_tokens=512)
             translated = tokenizer.decode(outputs[0], skip_special_tokens=True)
             return translated
@@ -156,10 +161,7 @@ class MultilingualAdapter:
             return text
 
     def process(
-        self,
-        text: str,
-        user_id: str = "anonymous",
-        analyze_fn: Optional[Callable] = None
+        self, text: str, user_id: str = "anonymous", analyze_fn: Optional[Callable] = None
     ) -> dict:
         """
         Full multilingual → OSKAR pipeline:
@@ -187,7 +189,9 @@ class MultilingualAdapter:
         lookup_code = "zh-cn" if lang_code.startswith("zh") else lang_code
 
         lang_info = SUPPORTED_LANGUAGES.get(lookup_code)
-        language_name = lang_info[0] if lang_info else ("English" if lang_code == "en" else "Unknown")
+        language_name = (
+            lang_info[0] if lang_info else ("English" if lang_code == "en" else "Unknown")
+        )
 
         was_translated = False
         if lang_code == "en":
@@ -198,6 +202,7 @@ class MultilingualAdapter:
 
         analysis = None
         if analyze_fn and translated_text.strip():
+
             class _Req:
                 def __init__(self, uid, t):
                     self.user_id = uid
@@ -211,12 +216,12 @@ class MultilingualAdapter:
         elapsed_ms = round((time.perf_counter() - start) * 1000, 1)
 
         return {
-            "original_text":          text,
-            "detected_language":      lang_code,
-            "language_name":          language_name,
-            "translated_text":        translated_text,
+            "original_text": text,
+            "detected_language": lang_code,
+            "language_name": language_name,
+            "translated_text": translated_text,
             "translation_confidence": confidence,
-            "was_translated":         was_translated,
-            "processing_ms":          elapsed_ms,
-            "analysis":               analysis,
+            "was_translated": was_translated,
+            "processing_ms": elapsed_ms,
+            "analysis": analysis,
         }

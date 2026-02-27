@@ -1,5 +1,7 @@
 import math
+
 import numpy as np
+
 
 class CognitiveEngine:
     def __init__(self, temperature=1.5):
@@ -15,11 +17,11 @@ class CognitiveEngine:
         """
         logits_tensor = np.array(logits)
         scaled_logits = logits_tensor / self.temperature
-        
+
         # Softmax
-        exp_logits = np.exp(scaled_logits - np.max(scaled_logits)) # numeric stability
+        exp_logits = np.exp(scaled_logits - np.max(scaled_logits))  # numeric stability
         probs = exp_logits / np.sum(exp_logits)
-        
+
         return probs.tolist()
 
     def compute_entropy(self, probs):

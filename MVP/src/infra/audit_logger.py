@@ -1,6 +1,6 @@
-import os
 import json
 import logging
+import os
 from datetime import datetime
 from pathlib import Path
 
@@ -13,11 +13,13 @@ AUDIT_LOG_FILE = LOGS_DIR / "decision_audit.log"
 logger = logging.getLogger("AuditLogger")
 logger.setLevel(logging.INFO)
 
+
 class AuditLogger:
     """
     Immutable, append-only JSONL logger for Enterprise compliance auditing.
     Records the variables and math that led to a specific routing decision.
     """
+
     @staticmethod
     def log_decision(
         request_id: str,
@@ -28,7 +30,7 @@ class AuditLogger:
         bot_score: float,
         hate_score: float,
         trust_score: float,
-        final_risk_score: float
+        final_risk_score: float,
     ):
         """Append a structured decision record to the audit log."""
         entry = {
@@ -41,11 +43,11 @@ class AuditLogger:
             "bot_score": round(bot_score, 4),
             "hate_score": round(hate_score, 4),
             "trust_score": round(trust_score, 4),
-            "final_risk_score": round(final_risk_score, 4)
+            "final_risk_score": round(final_risk_score, 4),
         }
-        
+
         # Append-only JSON line
         with open(AUDIT_LOG_FILE, "a", encoding="utf-8") as f:
             f.write(json.dumps(entry) + "\n")
-            
+
         return entry

@@ -5,21 +5,23 @@ Tests AudioAnalyzer initialization, dummy mode, and schema.
 
 import os
 import struct
-import wave
 import tempfile
+import wave
+
 import pytest
+
 from src.models.audio_analyzer import AudioAnalyzer
 
 
 def _make_tiny_wav(path: str, duration_s: float = 0.1, sample_rate: int = 16000):
     """Create a minimal valid WAV file for testing without external libraries."""
     num_samples = int(sample_rate * duration_s)
-    with wave.open(path, 'w') as wf:
+    with wave.open(path, "w") as wf:
         wf.setnchannels(1)
         wf.setsampwidth(2)  # 16-bit
         wf.setframerate(sample_rate)
         # Write silence (all zeros)
-        wf.writeframes(b'\x00\x00' * num_samples)
+        wf.writeframes(b"\x00\x00" * num_samples)
 
 
 def test_audio_analyzer_initialization():
@@ -79,6 +81,7 @@ def test_audio_analyzer_schema_no_pipeline():
 def test_audio_analyzer_latency_transcribe():
     """Transcription of a short silent WAV should complete within 30s."""
     import time
+
     analyzer = AudioAnalyzer()
 
     if not analyzer.enabled:

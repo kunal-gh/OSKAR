@@ -21,12 +21,12 @@ Usage (standalone):
 """
 
 import os
-import time
 import tempfile
+import time
 from typing import Optional
 
-WHISPER_MODEL  = os.getenv("WHISPER_MODEL", "base")   # tiny | base | small | medium
-MAX_DURATION_S = 300                                    # Hard cap: 5 minutes per clip
+WHISPER_MODEL = os.getenv("WHISPER_MODEL", "base")  # tiny | base | small | medium
+MAX_DURATION_S = 300  # Hard cap: 5 minutes per clip
 
 
 class AudioAnalyzer:
@@ -47,6 +47,7 @@ class AudioAnalyzer:
     def _load(self):
         try:
             import whisper
+
             print(f"[AudioAnalyzer] Loading Whisper '{self.model_name}' model...")
             self.model = whisper.load_model(self.model_name)
             self.enabled = True
@@ -72,7 +73,7 @@ class AudioAnalyzer:
                 "language": "unknown",
                 "duration_seconds": 0.0,
                 "segments": [],
-                "error": "Whisper not installed"
+                "error": "Whisper not installed",
             }
 
         if not os.path.exists(audio_path):
@@ -80,21 +81,22 @@ class AudioAnalyzer:
 
         try:
             import whisper
+
             result = self.model.transcribe(
                 audio_path,
-                fp16=False,          # CPU-safe, no half-precision
-                language=None,       # auto-detect language
-                verbose=False
+                fp16=False,  # CPU-safe, no half-precision
+                language=None,  # auto-detect language
+                verbose=False,
             )
             duration = 0.0
             if result.get("segments"):
                 duration = result["segments"][-1].get("end", 0.0)
 
             return {
-                "text":             result.get("text", "").strip(),
-                "language":         result.get("language", "unknown"),
+                "text": result.get("text", "").strip(),
+                "language": result.get("language", "unknown"),
                 "duration_seconds": round(duration, 2),
-                "segments":         result.get("segments", [])
+                "segments": result.get("segments", []),
             }
         except Exception as e:
             return {
@@ -102,15 +104,10 @@ class AudioAnalyzer:
                 "language": "unknown",
                 "duration_seconds": 0.0,
                 "segments": [],
-                "error": str(e)
+                "error": str(e),
             }
 
-    def analyze(
-        self,
-        audio_path: str,
-        user_id: str = "anonymous",
-        analyze_fn=None
-    ) -> dict:
+    def analyze(self, audio_path: str, user_id: str = "anonymous", analyze_fn=None) -> dict:
         """
         Full audio → OSKAR pipeline:
         1. Transcribe audio with Whisper
@@ -138,8 +135,9 @@ class AudioAnalyzer:
 
         analysis = None
         if analyze_fn and transcribed_text:
+            from typing import Any, Dict, List
+
             from pydantic import BaseModel
-            from typing import List, Dict, Any
 
             # Build a minimal AnalyzeRequest-like dict for the pipeline
             class _Req:
@@ -154,10 +152,10 @@ class AudioAnalyzer:
         elapsed_ms = round((time.perf_counter() - start) * 1000, 1)
 
         return {
-            "transcription":    transcribed_text,
-            "language":         transcription_result.get("language", "unknown"),
+            "transcription": transcribed_text,
+            "language": transcription_result.get("language", "unknown"),
             "duration_seconds": transcription_result.get("duration_seconds", 0.0),
-            "processing_ms":    elapsed_ms,
-            "enabled":          self.enabled,
-            "analysis":         analysis,
+            "processing_ms": elapsed_ms,
+            "enabled": self.enabled,
+            "analysis": analysis,
         }

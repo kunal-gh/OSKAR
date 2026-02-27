@@ -1,7 +1,9 @@
-import os
 import json
+import os
 from typing import Any, Optional
+
 import redis
+
 
 class RedisCache:
     """
@@ -9,6 +11,7 @@ class RedisCache:
     Replaces in-memory Python dictionaries with scalable Redis storage
     for horizontal scaling of A/B Testing, Warnings, and Trust features.
     """
+
     def __init__(self):
         # Default to local container or fallback to localhost during dev
         redis_url = os.getenv("REDIS_URL", "redis://localhost:6379/0")
@@ -19,7 +22,9 @@ class RedisCache:
             print(f"[RedisCache] Connected to {redis_url}")
         except redis.ConnectionError:
             self.connected = False
-            print("[RedisCache] Warning: Could not connect to Redis. Falling back to local dictionary.")
+            print(
+                "[RedisCache] Warning: Could not connect to Redis. Falling back to local dictionary."
+            )
             self._fallback_cache = {}
 
     def set(self, key: str, value: Any, ttl_seconds: Optional[int] = None) -> bool:
@@ -67,6 +72,7 @@ class RedisCache:
             # Very naive regex/pattern match for the fallback dict
             prefix = pattern.replace("*", "")
             return [k for k in self._fallback_cache.keys() if k.startswith(prefix)]
+
 
 # Global instance
 redis_cache = RedisCache()

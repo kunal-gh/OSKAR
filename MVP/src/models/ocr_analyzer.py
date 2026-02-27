@@ -25,7 +25,7 @@ Usage:
 
 import os
 import time
-from typing import Optional, Callable
+from typing import Callable, Optional
 
 # Configurable Tesseract binary path (Windows only)
 # Set env var TESSERACT_CMD if not on PATH
@@ -65,12 +65,7 @@ class OCRAnalyzer:
         except Exception as e:
             print(f"[OCRAnalyzer] Tesseract not available: {e}. Running in dummy mode.")
 
-    def extract_text(
-        self,
-        image_path: str,
-        psm: int = DEFAULT_PSM,
-        lang: str = "eng"
-    ) -> dict:
+    def extract_text(self, image_path: str, psm: int = DEFAULT_PSM, lang: str = "eng") -> dict:
         """
         Extract text from an image file using Tesseract OCR.
 
@@ -95,7 +90,7 @@ class OCRAnalyzer:
                 "confidence": 0.0,
                 "language": lang,
                 "enabled": False,
-                "error": "Tesseract not installed"
+                "error": "Tesseract not installed",
             }
 
         if not os.path.exists(image_path):
@@ -117,24 +112,20 @@ class OCRAnalyzer:
 
             # Get confidence data
             data = pytesseract.image_to_data(
-                img, lang=lang, config=config,
-                output_type=pytesseract.Output.DICT
+                img, lang=lang, config=config, output_type=pytesseract.Output.DICT
             )
-            confidences = [
-                c for c in data["conf"]
-                if isinstance(c, (int, float)) and c > 0
-            ]
+            confidences = [c for c in data["conf"] if isinstance(c, (int, float)) and c > 0]
             mean_conf = round(sum(confidences) / len(confidences), 1) if confidences else 0.0
 
             cleaned = raw_text.strip()
             words = cleaned.split()
 
             return {
-                "text":       cleaned,
+                "text": cleaned,
                 "word_count": len(words),
                 "confidence": mean_conf,
-                "language":   lang,
-                "enabled":    True
+                "language": lang,
+                "enabled": True,
             }
 
         except Exception as e:
@@ -144,7 +135,7 @@ class OCRAnalyzer:
                 "confidence": 0.0,
                 "language": lang,
                 "enabled": self.enabled,
-                "error": str(e)
+                "error": str(e),
             }
 
     def analyze(
@@ -153,7 +144,7 @@ class OCRAnalyzer:
         user_id: str = "anonymous",
         psm: int = DEFAULT_PSM,
         lang: str = "eng",
-        analyze_fn: Optional[Callable] = None
+        analyze_fn: Optional[Callable] = None,
     ) -> dict:
         """
         Full image → OSKAR pipeline.
@@ -178,6 +169,7 @@ class OCRAnalyzer:
 
         analysis = None
         if analyze_fn and extracted_text.strip():
+
             class _Req:
                 def __init__(self, user_id, text):
                     self.user_id = user_id
@@ -190,11 +182,11 @@ class OCRAnalyzer:
         elapsed_ms = round((time.perf_counter() - start) * 1000, 1)
 
         return {
-            "extracted_text":  extracted_text,
-            "word_count":      ocr_result.get("word_count", 0),
-            "ocr_confidence":  ocr_result.get("confidence", 0.0),
-            "language":        ocr_result.get("language", lang),
-            "processing_ms":   elapsed_ms,
-            "enabled":         self.enabled,
-            "analysis":        analysis,
+            "extracted_text": extracted_text,
+            "word_count": ocr_result.get("word_count", 0),
+            "ocr_confidence": ocr_result.get("confidence", 0.0),
+            "language": ocr_result.get("language", lang),
+            "processing_ms": elapsed_ms,
+            "enabled": self.enabled,
+            "analysis": analysis,
         }

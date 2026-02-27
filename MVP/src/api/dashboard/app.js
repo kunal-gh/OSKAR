@@ -94,7 +94,8 @@ async function runAnalysis() {
   btn.textContent = "…";
 
   try {
-    const res = await fetch(`${API}/analyze`, {
+    // 1. Submit Async Task
+    const res = await fetch(`${API}/analyze/async`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -102,8 +103,29 @@ async function runAnalysis() {
       },
       body: JSON.stringify({ user_id: uid, text, context_thread: [] }),
     });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const data = await res.json();
+    
+    if (!res.ok) throw new Error(`Status ${res.status}`);
+    const { task_id } = await res.json();
+    
+    // 2. Poll for Result
+    let result = null;
+    let attempts = 0;
+    while (!result && attempts < 60) {
+      const poll = await fetch(`${API}/tasks/${task_id}`, {
+        headers: { "X-API-Key": "REDACTED_USE_ENV_VAR" }
+      });
+      const status = await poll.json();
+      
+      if (status.ready) {
+        result = status.result;
+        break;
+      }
+      
+      attempts++;
+      await new Promise(r => setTimeout(r, 1000));
+    }
+
+    if (!result) throw new Error("Analysis timed out");
 
     // Show results view
     document.getElementById("homeView").classList.add("hidden");
@@ -113,13 +135,13 @@ async function runAnalysis() {
     rv.offsetHeight;
     rv.style.animation = null;
 
-    renderScore(data);
-    renderModules(data);
-    addLog(text, data);
+    renderScore(result);
+    renderModules(result);
+    addLog(text, result);
 
   } catch (e) {
     console.error(e);
-    alert("Analysis failed — is the API running?");
+    alert("Analysis failed — " + e.message);
   } finally {
     btn.disabled = false;
     btn.innerHTML = 'Analyze <span class="submit-arrow">↑</span>';

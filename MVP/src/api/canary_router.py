@@ -1,10 +1,11 @@
-import time
+import logging
 import random
 import threading
-import logging
+import time
 
 logger = logging.getLogger("CanaryRouter")
 logger.setLevel(logging.INFO)
+
 
 class CanaryRouter:
     """
@@ -12,6 +13,7 @@ class CanaryRouter:
     to a 'Canary' experimental model, while sending the rest to the 'Stable' model.
     Includes an automated rollback mechanism if the Canary model degrades.
     """
+
     def __init__(
         self,
         stable_model,
@@ -19,23 +21,23 @@ class CanaryRouter:
         initial_split=0.0,
         max_latency_ms=500.0,
         max_error_rate=0.05,
-        evaluation_window_seconds=10
+        evaluation_window_seconds=10,
     ):
         self.stable_model = stable_model
         self.canary_model = canary_model
-        
+
         # Traffic split percentage (0.0 to 1.0)
         self.traffic_split = initial_split
-        
+
         # Safety thresholds
         self.max_latency_ms = max_latency_ms
         self.max_error_rate = max_error_rate
-        
+
         # Metrics
         self.canary_requests = 0
         self.canary_errors = 0
         self.canary_latency_sum = 0.0
-        
+
         # Rollback monitoring thread
         self.window = evaluation_window_seconds
         self._lock = threading.Lock()
@@ -83,15 +85,15 @@ class CanaryRouter:
         try:
             result = self.canary_model.predict(text)
             latency = time.time() - start_time
-            
+
             with self._lock:
                 self.canary_requests += 1
                 self.canary_latency_sum += latency
-                
+
             # Tag the result so the dashboard knows it was an experimental route
             result["_canary_route"] = True
             return result
-            
+
         except Exception as e:
             # Canary failed, record error and fallback to stable
             latency = time.time() - start_time
@@ -99,7 +101,7 @@ class CanaryRouter:
                 self.canary_requests += 1
                 self.canary_latency_sum += latency
                 self.canary_errors += 1
-                
+
             logger.error(f"Canary model evaluation failed: {e}. Falling back to stable.")
             fallback_result = self.stable_model.predict(text)
             fallback_result["_canary_fallback"] = True

@@ -1,12 +1,20 @@
 import math
+
 import torch
 from transformers import pipeline
 
-
 # All known hate-positive label strings across supported models (case-insensitive match)
 HATE_LABELS = {
-    "hate", "hate_speech", "hateful", "offensive", "toxic", "toxicity",
-    "racism", "sexism", "1", "label_1",
+    "hate",
+    "hate_speech",
+    "hateful",
+    "offensive",
+    "toxic",
+    "toxicity",
+    "racism",
+    "sexism",
+    "1",
+    "label_1",
 }
 
 
@@ -29,7 +37,7 @@ class HateClassifier:
             "text-classification",
             model=model_name,
             device=self.device,
-            top_k=None,           # Always return all class scores
+            top_k=None,  # Always return all class scores
             truncation=True,
             max_length=512,
         )

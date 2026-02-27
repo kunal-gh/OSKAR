@@ -1,6 +1,8 @@
 import json
-from typing import List, Dict, Any
+from typing import Any, Dict, List
+
 from fastapi import WebSocket
+
 
 class WebSocketManager:
     """
@@ -8,7 +10,7 @@ class WebSocketManager:
     Maintains a register of active dashboard clients.
     Broadcasts parsed OSKAR risk evaluation results in real-time.
     """
-    
+
     def __init__(self):
         self.active_connections: List[WebSocket] = []
 
@@ -27,7 +29,7 @@ class WebSocketManager:
         Broadcasts a JSON dictionary to all connected clients.
         """
         payload = json.dumps(message)
-        
+
         # Create a copy to iterate safely in case a client disconnects during broadcast
         for connection in list(self.active_connections):
             try:
@@ -35,6 +37,7 @@ class WebSocketManager:
             except Exception as e:
                 print(f"[WebSocket] Error broadcasting to client: {e}")
                 self.disconnect(connection)
+
 
 # Global singleton instance
 ws_manager = WebSocketManager()

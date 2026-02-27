@@ -1,12 +1,8 @@
-from typing import TYPE_CHECKING, Optional
+from typing import Optional, Any
 
 import numpy as np
 
 from src.core.cognitive_engine import CognitiveEngine
-
-if TYPE_CHECKING:
-    from src.api.compliance_manager import ComplianceProfile
-
 
 class RiskFusionEngine:
     def __init__(self, num_simulations=1000):
@@ -20,7 +16,7 @@ class RiskFusionEngine:
         bot_score: float,
         trust_score: float,
         burst_score: float = 0.0,
-        profile: "Optional[ComplianceProfile]" = None,
+        profile: Optional[Any] = None,
     ) -> dict:
         """
         Combines all module risk signals into a Monte Carlo risk distribution.

@@ -4,7 +4,8 @@ Tests MultilingualAdapter: init, language detection, schema, and translation.
 """
 
 import pytest
-from src.models.multilingual_adapter import MultilingualAdapter, SUPPORTED_LANGUAGES
+
+from src.models.multilingual_adapter import SUPPORTED_LANGUAGES, MultilingualAdapter
 
 
 def test_multilingual_adapter_initialization():
@@ -67,19 +68,17 @@ def test_process_schema():
     """process() must return the expected schema for any input."""
     adapter = MultilingualAdapter()
     result = adapter.process(
-        "The earth is flat, NASA is lying.",
-        user_id="test_user",
-        analyze_fn=None
+        "The earth is flat, NASA is lying.", user_id="test_user", analyze_fn=None
     )
-    assert "original_text"          in result
-    assert "detected_language"      in result
-    assert "language_name"          in result
-    assert "translated_text"        in result
+    assert "original_text" in result
+    assert "detected_language" in result
+    assert "language_name" in result
+    assert "translated_text" in result
     assert "translation_confidence" in result
-    assert "was_translated"         in result
-    assert "processing_ms"          in result
-    assert "analysis"               in result
-    assert result["analysis"] is None   # No pipeline passed
+    assert "was_translated" in result
+    assert "processing_ms" in result
+    assert "analysis" in result
+    assert result["analysis"] is None  # No pipeline passed
 
 
 def test_process_english_no_translation():
@@ -101,17 +100,23 @@ def test_process_spanish_translation():
     result = adapter.process(text, user_id="u2")
 
     # Language should be in Spanish family
-    assert result["detected_language"] in ("es", "pt", "ca"), \
-        f"Expected Spanish-family language but got '{result['detected_language']}'"
+    assert result["detected_language"] in (
+        "es",
+        "pt",
+        "ca",
+    ), f"Expected Spanish-family language but got '{result['detected_language']}'"
     assert isinstance(result["translated_text"], str)
     assert len(result["translated_text"]) > 0
     print(f"[ES→EN] '{result['translated_text']}'")
+
 
 def test_empty_text_graceful():
     """Empty text should return defaults without crashing."""
     adapter = MultilingualAdapter()
     result = adapter.process("", user_id="u3")
-    assert result["detected_language"] in ("en", "unknown") or isinstance(result["detected_language"], str)
+    assert result["detected_language"] in ("en", "unknown") or isinstance(
+        result["detected_language"], str
+    )
     assert result["analysis"] is None
 
 

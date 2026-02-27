@@ -4,15 +4,13 @@ Tests BurstDetector initialization, schema, normal traffic, and burst detection.
 """
 
 import pytest
+
 from src.core.burst_detector import BurstDetector
 
 
 def _make_events(user_counts: list, base_ts: int = 1708000000, interval_s: int = 60):
     """Helper: generate a list of posting events from user count sequence."""
-    return [
-        {"ts": base_ts + i * interval_s, "user_count": c}
-        for i, c in enumerate(user_counts)
-    ]
+    return [{"ts": base_ts + i * interval_s, "user_count": c} for i, c in enumerate(user_counts)]
 
 
 def test_burst_detector_initialization():
@@ -60,8 +58,8 @@ def test_burst_detector_coordinated_spike():
     than quiet traffic (even with untrained model).
     """
     bd = BurstDetector()
-    quiet   = _make_events([1, 2, 1, 1, 2, 1, 1, 2, 1, 1, 1, 2, 1, 1, 2, 1])
-    burst   = _make_events([1, 2, 1, 1, 80, 90, 85, 80, 75, 80, 85, 82, 79, 80, 77, 78])
+    quiet = _make_events([1, 2, 1, 1, 2, 1, 1, 2, 1, 1, 1, 2, 1, 1, 2, 1])
+    burst = _make_events([1, 2, 1, 1, 80, 90, 85, 80, 75, 80, 85, 82, 79, 80, 77, 78])
 
     score_quiet = bd.detect(quiet)["anomaly_score"]
     score_burst = bd.detect(burst)["anomaly_score"]
@@ -69,9 +67,9 @@ def test_burst_detector_coordinated_spike():
     print(f"[Quiet]  anomaly_score={score_quiet:.3f}")
     print(f"[Burst]  anomaly_score={score_burst:.3f}")
 
-    assert score_burst >= score_quiet, (
-        f"Burst score ({score_burst}) should be >= quiet score ({score_quiet})"
-    )
+    assert (
+        score_burst >= score_quiet
+    ), f"Burst score ({score_burst}) should be >= quiet score ({score_quiet})"
 
 
 def test_burst_detector_quick_score():

@@ -1,7 +1,7 @@
 """
 pii_scrubber.py — OSKAR v0.6 Enterprise Security
 ------------------------------------------------
-Scans and redacts Personally Identifiable Information (PII) 
+Scans and redacts Personally Identifiable Information (PII)
 from text before it reaches the NLP analysis pipeline.
 
 Supported RegEx Redactions:
@@ -10,32 +10,33 @@ Supported RegEx Redactions:
 - Social Security Numbers (US)
 - Credit Card Numbers
 
-Why? To ensure OSKAR is safe to use in enterprise environments 
-where sensitive user data might accidentally be pasted into 
+Why? To ensure OSKAR is safe to use in enterprise environments
+where sensitive user data might accidentally be pasted into
 chat platforms or review queues.
 """
 
 import re
 
 # Regex Patterns for common PII
-EMAIL_REGEX = re.compile(r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b')
+EMAIL_REGEX = re.compile(r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b")
 
 # Matches various common US phone formats: (123) 456-7890, 123-456-7890, 123.456.7890, +1 123 456 7890
-PHONE_REGEX = re.compile(
-    r'\+?1?\s*\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}'
-)
+PHONE_REGEX = re.compile(r"\+?1?\s*\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}")
 
 # Standard 9-digit US SSN (XXX-XX-XXXX or XXXXXXXXX)
-SSN_REGEX = re.compile(r'\b(?!(000|666|9))\d{3}-(?!00)\d{2}-(?!0000)\d{4}\b|\b(?!(000|666|9))\d{9}\b')
+SSN_REGEX = re.compile(
+    r"\b(?!(000|666|9))\d{3}-(?!00)\d{2}-(?!0000)\d{4}\b|\b(?!(000|666|9))\d{9}\b"
+)
 
 # Basic 16-digit credit card math (Visa/Mastercard)
-CREDIT_CARD_REGEX = re.compile(r'\b(?:\d[ -]*?){13,16}\b')
+CREDIT_CARD_REGEX = re.compile(r"\b(?:\d[ -]*?){13,16}\b")
 
 
 class PIIScrubber:
     """
     Sanitizes user input by redacting raw PII before NLP processing.
     """
+
     def __init__(self, mode="redact"):
         # "redact" = Replace with <PII_TYPE>
         # "mask"   = Replace with ***
@@ -73,9 +74,9 @@ class PIIScrubber:
             # (Basic check to avoid redacting random long numbers, though a real system uses Luhn's)
             potential_ccs = CREDIT_CARD_REGEX.findall(text)
             for cc in potential_ccs:
-                digits = re.sub(r'\D', '', cc)
+                digits = re.sub(r"\D", "", cc)
                 if 13 <= len(digits) <= 16:
-                    text = text.replace(cc, self._replace(re.match(r'.*', cc), "CREDIT_CARD"))
+                    text = text.replace(cc, self._replace(re.match(r".*", cc), "CREDIT_CARD"))
                     if "credit_card" not in redactions:
                         redactions.append("credit_card")
 
@@ -88,8 +89,4 @@ class PIIScrubber:
             if "phone" not in redactions:
                 redactions.append("phone")
 
-        return {
-            "clean_text": text,
-            "pii_found": len(redactions) > 0,
-            "redactions": redactions
-        }
+        return {"clean_text": text, "pii_found": len(redactions) > 0, "redactions": redactions}

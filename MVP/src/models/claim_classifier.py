@@ -1,5 +1,5 @@
-import torch
 import numpy as np
+import torch
 from transformers import pipeline
 
 
@@ -17,13 +17,13 @@ class ClaimClassifier:
 
     # Map from raw zero-shot label → output schema type
     LABEL_MAP = {
-        "statistical claim":  ("statistical",  True),
-        "historical claim":   ("historical",   True),
-        "policy claim":       ("policy",        True),
-        "scientific claim":   ("scientific",    True),
-        "subjective opinion": ("opinion",       False),
-        "personal experience":("opinion",       False),
-        "prediction":         ("opinion",       False),
+        "statistical claim": ("statistical", True),
+        "historical claim": ("historical", True),
+        "policy claim": ("policy", True),
+        "scientific claim": ("scientific", True),
+        "subjective opinion": ("opinion", False),
+        "personal experience": ("opinion", False),
+        "prediction": ("opinion", False),
     }
 
     CANDIDATE_LABELS = list(LABEL_MAP.keys())
@@ -54,7 +54,7 @@ class ClaimClassifier:
             "is_verifiable": bool(is_verifiable),
             "claim_type": claim_type,
             "confidence": round(float(top_score), 4),
-            "model": "nli-deberta-v3-large"
+            "model": "nli-deberta-v3-large",
         }
 
     def benchmark(self, samples: list[dict] = None) -> dict:
@@ -65,19 +65,20 @@ class ClaimClassifier:
         """
         if samples is None:
             samples = [
-                {"text": "Vaccines cause autism.",                     "expected_verifiable": True},
-                {"text": "CO2 has reached 420 ppm.",                  "expected_verifiable": True},
-                {"text": "Pineapple on pizza is the best.",           "expected_verifiable": False},
-                {"text": "The 2020 election was stolen.",             "expected_verifiable": True},
-                {"text": "I love sunny days.",                        "expected_verifiable": False},
-                {"text": "5G towers cause COVID-19.",                 "expected_verifiable": True},
-                {"text": "Climate change is a hoax.",                 "expected_verifiable": True},
-                {"text": "Coffee tastes better lukewarm.",            "expected_verifiable": False},
-                {"text": "The moon landing was faked.",               "expected_verifiable": True},
+                {"text": "Vaccines cause autism.", "expected_verifiable": True},
+                {"text": "CO2 has reached 420 ppm.", "expected_verifiable": True},
+                {"text": "Pineapple on pizza is the best.", "expected_verifiable": False},
+                {"text": "The 2020 election was stolen.", "expected_verifiable": True},
+                {"text": "I love sunny days.", "expected_verifiable": False},
+                {"text": "5G towers cause COVID-19.", "expected_verifiable": True},
+                {"text": "Climate change is a hoax.", "expected_verifiable": True},
+                {"text": "Coffee tastes better lukewarm.", "expected_verifiable": False},
+                {"text": "The moon landing was faked.", "expected_verifiable": True},
                 {"text": "Star Wars is the greatest franchise ever.", "expected_verifiable": False},
             ]
         correct = sum(
-            1 for s in samples
+            1
+            for s in samples
             if self.predict(s["text"])["is_verifiable"] == s["expected_verifiable"]
         )
         acc = round(correct / len(samples), 4)
