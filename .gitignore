@@ -1,0 +1,13 @@
+# MLE Portfolio Focus - Hiding Deployment Clutter
+MVP/k8s/
+MVP/Dockerfile
+MVP/docker-compose.yml
+MVP/prometheus.yml
+Showcase/
+MVP/src/api/dashboard/
+.github/
+MVP/src/seed_microservices.py
+MVP/src/celery_app.py
+MVP/src/tasks.py
+*.txt
+!MVP/requirements.txt
