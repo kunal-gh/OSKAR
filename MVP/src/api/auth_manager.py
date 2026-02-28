@@ -10,14 +10,14 @@ class UserRole(str, Enum):
     SYSTEM = "system"
 
 
-# Legacy key from v0.6 for backward compatibility with Dashboard
-LEGACY_KEY = "REDACTED_USE_ENV_VAR"
+import os
 
-# In-memory RBAC Database (In production, load from PostgreSQL/Vault)
+# All keys are loaded exclusively from environment variables.
+# Never commit actual values here — use a .env file locally and Vault/GCP Secret Manager in production.
 API_KEYS = {
-    "oskar-admin-key-999": UserRole.ADMIN,
-    LEGACY_KEY: UserRole.ANALYST,
-    "oskar-system-key-777": UserRole.SYSTEM,
+    os.getenv("OSKAR_API_KEY", ""): UserRole.ANALYST,
+    os.getenv("OSKAR_ADMIN_KEY", ""): UserRole.ADMIN,
+    os.getenv("OSKAR_SYSTEM_KEY", ""): UserRole.SYSTEM,
 }
 
 API_KEY_NAME = "X-API-Key"

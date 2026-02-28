@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: oskar-neo4j
+spec:
+  serviceName: "oskar-neo4j"
+  replicas: 1
+  selector:
+    matchLabels:
+      app: neo4j
+  template:
+    metadata:
+      labels:
+        app: neo4j
+    spec:
+      containers:
+        - name: neo4j
+          image: {{ .Values.neo4j.image }}
+          ports:
+            - containerPort: 7474
+            - containerPort: 7687
+          env:
+            - name: NEO4J_AUTH
+              value: "neo4j/{{ .Values.neo4j.password }}"
+          volumeMounts:
+            - name: neo4j-data
+              mountPath: /data
+  volumeClaimTemplates:
+    - metadata:
+        name: neo4j-data
+      spec:
+        accessModes: [ "ReadWriteOnce" ]
+        resources:
+          requests:
+            storage: {{ .Values.neo4j.persistence.size }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: oskar-neo4j
+spec:
+  ports:
+    - port: 7687
+      name: bolt
+      targetPort: 7687
+    - port: 7474
+      name: http
+      targetPort: 7474
+  selector:
+    app: neo4j

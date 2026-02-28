@@ -1,13 +1,21 @@
 # MLE Portfolio Focus - Hiding Deployment Clutter
-MVP/k8s/
-MVP/Dockerfile
-MVP/docker-compose.yml
-MVP/prometheus.yml
+engine/k8s/
+engine/Dockerfile
+engine/docker-compose.yml
+engine/prometheus.yml
 Showcase/
-MVP/src/api/dashboard/
+engine/src/api/dashboard/
 .github/
-MVP/src/seed_microservices.py
-MVP/src/celery_app.py
-MVP/src/tasks.py
+engine/src/seed_microservices.py
+engine/src/celery_app.py
+engine/src/tasks.py
 *.txt
-!MVP/requirements.txt
+!engine/requirements.txt
+
+# Security — never commit credentials
+.env
+*.env
+engine/.env
+engine/logs/
+engine/venv/
+engine/__pycache__/

@@ -141,9 +141,10 @@ api_key_header = fastapi.security.APIKeyHeader(name=API_KEY_NAME, auto_error=Fal
 
 
 def get_api_key(api_key_header: str = fastapi.Security(api_key_header)):
-    # In production, this would validate against a DB of hashed keys
-    # For MVP v0.6, we use an env var or fallback
-    expected_key = os.getenv("OSKAR_API_KEY", "REDACTED_USE_ENV_VAR")
+    # Validated against env var. No hardcoded fallbacks — configure OSKAR_API_KEY in your .env file.
+    expected_key = os.getenv("OSKAR_API_KEY")
+    if not expected_key:
+        raise HTTPException(status_code=500, detail="API Key not configured on server.")
     if api_key_header == expected_key:
         return api_key_header
     raise HTTPException(

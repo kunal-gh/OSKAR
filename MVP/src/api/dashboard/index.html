@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>OSKAR</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Special+Elite&family=Playfair+Display:ital@0;1&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet" />
+    <link rel="stylesheet" href="/static/style.css" />
+</head>
+
+<body>
+
+    <!-- Ambient background blobs -->
+    <div class="ambient" aria-hidden="true">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+    </div>
+
+    <!-- ══════════ HOME STATE ══════════ -->
+    <div class="home" id="homeView">
+
+        <!-- Status pill — minimal, top right -->
+        <div class="status-pill" id="statusPill">
+            <span class="sdot" id="sDot"></span>
+            <span id="sLabel">—</span>
+        </div>
+
+        <!-- HERO TITLE -->
+        <header class="hero-header">
+            <h1 class="hero-title">OSKAR</h1>
+            <p class="hero-tagline">Online Safety & Knowledge Authenticity Resolver</p>
+            <div class="hero-rule"></div>
+        </header>
+
+        <!-- COMPOSER — directly beneath title -->
+        <section class="composer-wrap" id="composerWrap">
+            <div class="composer-box" id="composerBox">
+                <textarea id="composerInput" placeholder="Enter content to analyze…" rows="2"
+                    spellcheck="false"></textarea>
+                <div class="composer-footer">
+                    <div class="sample-row">
+                        <button class="chip" onclick="loadSample('safe')">Safe</button>
+                        <button class="chip" onclick="loadSample('hate')">Toxic</button>
+                        <button class="chip" onclick="loadSample('misinfo')">Misinfo</button>
+                        <button class="chip" onclick="loadSample('opinion')">Opinion</button>
+                    </div>
+                    <div class="composer-right">
+                        <input type="text" id="userId" class="uid-input" placeholder="User ID" value="user_01" />
+                        <button class="submit-btn" id="btnSubmit" onclick="runAnalysis()">
+                            Analyze <span class="submit-arrow">↑</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- DECORATIVE BOTTOM LABELS -->
+        <footer class="home-footer">
+            <span class="footer-tag">v0.2</span>
+            <span class="footer-sep">·</span>
+            <span class="footer-tag">Uncertainty-Aware Analysis</span>
+            <span class="footer-sep">·</span>
+            <span class="footer-tag" id="footerStatus">Initializing…</span>
+        </footer>
+    </div>
+
+    <!-- ══════════ RESULTS STATE ══════════ -->
+    <div class="results-view hidden" id="resultsView">
+
+        <!-- Back button -->
+        <button class="back-btn" onclick="goHome()">← New Analysis</button>
+
+        <!-- Score Hero -->
+        <div class="score-hero">
+            <div class="score-ring-wrap">
+                <svg viewBox="0 0 160 160" class="score-svg">
+                    <circle cx="80" cy="80" r="68" class="sr-bg" />
+                    <circle cx="80" cy="80" r="68" class="sr-fill" id="scoreRing" transform="rotate(-90 80 80)"
+                        stroke-dasharray="0 427.26" />
+                </svg>
+                <div class="score-overlay">
+                    <span class="score-num" id="scoreNum">0</span>
+                    <span class="score-label">Risk</span>
+                </div>
+            </div>
+            <div class="score-aside">
+                <h2 class="verdict-text" id="verdictText">Analyzing</h2>
+                <div class="route-tag" id="routeTag">—</div>
+                <p class="ci-text" id="ciText">—</p>
+            </div>
+        </div>
+
+        <!-- Module cards -->
+        <div class="modules">
+            <div class="mod-card">
+                <span class="mod-label">Toxicity</span>
+                <span class="mod-val" id="mHateVal">—</span>
+                <div class="mod-bar">
+                    <div class="mod-fill" id="mHateFill"></div>
+                </div>
+                <span class="mod-detail" id="mHateDet">—</span>
+            </div>
+            <div class="mod-card">
+                <span class="mod-label">Claim</span>
+                <span class="mod-val" id="mClaimVal">—</span>
+                <div class="mod-bar">
+                    <div class="mod-fill fill-warm" id="mClaimFill"></div>
+                </div>
+                <span class="mod-detail" id="mClaimDet">—</span>
+            </div>
+            <div class="mod-card">
+                <span class="mod-label">Verification</span>
+                <span class="mod-val" id="mVerifyVal">—</span>
+                <div class="mod-bar">
+                    <div class="mod-fill fill-dim" id="mVerifyFill"></div>
+                </div>
+                <span class="mod-detail" id="mVerifyDet">—</span>
+            </div>
+            <div class="mod-card">
+                <span class="mod-label">Trust</span>
+                <span class="mod-val mono" id="mTrustVal">—</span>
+                <div class="mod-bar">
+                    <div class="mod-fill fill-ash" id="mTrustFill"></div>
+                </div>
+                <span class="mod-detail" id="mTrustDet">—</span>
+            </div>
+        </div>
+
+        <!-- Log -->
+        <div class="log-panel">
+            <span class="log-title">Session Log</span>
+            <div class="log-body" id="logBody">
+                <span class="log-empty">No history yet.</span>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="/static/app.js"></script>
+</body>
+
+</html>

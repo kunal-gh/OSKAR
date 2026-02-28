@@ -1,3 +1,4 @@
+import os
 import threading
 import time
 from typing import Any, Dict
@@ -72,8 +73,9 @@ class StreamIngester:
                     break
 
                 try:
-                    # Post to OSKAR API
-                    headers = {"X-API-Key": "REDACTED_USE_ENV_VAR"}
+                    # Post to OSKAR API using key loaded from environment
+                    api_key = os.getenv("OSKAR_API_KEY", "")
+                    headers = {"X-API-Key": api_key}
                     response = self.client.post(self.api_url, json=comment, headers=headers)
 
                     if response.status_code == 200:
