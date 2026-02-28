@@ -8,9 +8,9 @@
 [![Neo4j](https://img.shields.io/badge/Neo4j-Graph_RAG-4581C3?style=for-the-badge&logo=neo4j&logoColor=white)](https://neo4j.com/)
 [![Qdrant](https://img.shields.io/badge/Qdrant-Vector_DB-ff0000?style=for-the-badge&logo=qdrant&logoColor=white)](https://qdrant.tech/)
 
-[![Vercel Live](https://img.shields.io/badge/Vercel-Interactive_Dashboard_Demo-000000?style=for-the-badge&logo=vercel&logoColor=white)](https://oskar-six.vercel.app/)
+[![Vercel Live](https://img.shields.io/badge/Vercel-Interactive_Dashboard_Demo-000000?style=for-the-badge&logo=vercel&logoColor=white)](https://showcase-chi-one.vercel.app/)
 
-### 🚀 **[Try the Live OSKAR UI Demo Here](https://oskar-six.vercel.app/)** 🚀
+### 🚀 **[Try the Live OSKAR UI Demo Here](https://showcase-chi-one.vercel.app/)** 🚀
 
 ---
 
@@ -137,4 +137,4 @@ To keep the repository clean for ML peers and recruiters, I have intentionally e
 - **`engine/src/api/main.py`**: The PyTorch-to-FastAPI inference bridging logic.
 
 > **Interested in exploring more of the design?**
-> Check out my detailed live web implementation via the [OSKAR Vercel Demo](https://oskar-six.vercel.app/).
+> Check out my detailed live web implementation via the [OSKAR Vercel Demo](https://showcase-chi-one.vercel.app/).
