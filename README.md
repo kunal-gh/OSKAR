@@ -131,10 +131,10 @@ Because I designed OSKAR as an Enterprise-grade engine, the stack is heavily opt
 
 To keep the repository clean for ML peers and recruiters, I have intentionally excluded dev-ops deployment files (Docker/Helm) from the tracked remote index to focus purely on the ML architectures.
 
-- **`engine/src/models/risk_fusion.py`**: The core Bayesian Risk fusion and Entropy router.
-- **`engine/src/core/trust_engine.py`**: The Beta-Bernoulli mathematical trust ledger.
-- **`engine/src/core/evidence_retrieval.py`**: The vector Qdrant semantic engine and Neo4j lookup logic.
-- **`engine/src/api/main.py`**: The PyTorch-to-FastAPI inference bridging logic.
+- **`oskar_engine/models/risk_fusion.py`**: The core Bayesian Risk fusion and Entropy router.
+- **`oskar_engine/core/trust_engine.py`**: The Beta-Bernoulli mathematical trust ledger.
+- **`oskar_engine/core/evidence_retrieval.py`**: The vector Qdrant semantic engine and Neo4j lookup logic.
+- **`oskar_engine/api/main.py`**: The PyTorch-to-FastAPI inference bridging logic.
 
 > **Interested in exploring more of the design?**
 > Check out my detailed live web implementation via the [OSKAR Vercel Demo](https://showcase-chi-one.vercel.app/).
