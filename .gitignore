@@ -5,7 +5,6 @@ engine/docker-compose.yml
 engine/prometheus.yml
 Showcase/
 engine/src/api/dashboard/
-.github/
 engine/src/seed_microservices.py
 engine/src/celery_app.py
 engine/src/tasks.py
