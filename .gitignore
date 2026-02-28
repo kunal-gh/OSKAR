@@ -1,20 +1,61 @@
-# MLE Portfolio Focus - Hiding Deployment Clutter
-engine/k8s/
-engine/Dockerfile
-engine/docker-compose.yml
-engine/prometheus.yml
-Showcase/
-engine/src/api/dashboard/
-engine/src/seed_microservices.py
-engine/src/celery_app.py
-engine/src/tasks.py
-*.txt
-!engine/requirements.txt
+# =========================================================
+# OSKAR — ML Portfolio .gitignore
+# Only core ML source code is exposed to viewers/recruiters
+# =========================================================
 
-# Security — never commit credentials
+# --- Deployment & DevOps (not relevant to ML portfolio) ---
+MVP/Dockerfile
+MVP/docker-compose.yml
+MVP/k8s/
+MVP/prometheus.yml
+MVP/pyproject.toml
+
+# --- API Dashboard UI (separate Vercel deployment) ---
+MVP/src/api/dashboard/
+Showcase/
+
+# --- Infrastructure scripts (internal tooling only) ---
+MVP/src/seed_microservices.py
+MVP/src/celery_app.py
+MVP/src/tasks.py
+
+# --- Credentials & Environment ---
 .env
 *.env
+MVP/.env
+MVP/.env.example
 engine/.env
-engine/logs/
-engine/venv/
-engine/__pycache__/
+engine/.env.example
+engine/
+
+# --- Python build artifacts ---
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+dist/
+build/
+.eggs/
+.pytest_cache/
+MVP/.pytest_cache/
+
+# --- Runtime & Local dev ---
+MVP/venv/
+MVP/logs/
+venv/
+logs/
+
+# --- Config files (internal to dev environment) ---
+MVP/.flake8
+MVP/.gitignore
+
+# --- Tests (internal QA, not needed for portfolio view) ---
+MVP/tests/
+
+# --- Knowledge base (large raw data files) ---
+MVP/knowledge_base/
+
+# --- Misc ---
+*.txt
+!MVP/requirements.txt
