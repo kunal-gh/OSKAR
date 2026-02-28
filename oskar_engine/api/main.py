@@ -11,6 +11,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.security import APIKeyHeader
 from fastapi.staticfiles import StaticFiles
+
 # Initialize Prometheus metrics (safe for uvicorn --reload)
 from prometheus_client import REGISTRY, Counter, Histogram, make_asgi_app
 from pydantic import BaseModel
@@ -29,16 +30,11 @@ from src.models.hate_classifier import HateClassifier
 from src.models.multilingual_adapter import MultilingualAdapter
 from src.models.ocr_analyzer import OCRAnalyzer
 from src.models.risk_fusion import RiskFusionEngine
-from src.tasks import (async_analyze_audio, async_analyze_image,
-                       async_analyze_text)
+from src.tasks import async_analyze_audio, async_analyze_image, async_analyze_text
 
 try:
-    REQUEST_COUNT = Counter(
-        "request_count", "App Request Count", ["method", "endpoint", "http_status"]
-    )
-    REQUEST_LATENCY = Histogram(
-        "request_latency_seconds", "Request latency", ["endpoint"]
-    )
+    REQUEST_COUNT = Counter("request_count", "App Request Count", ["method", "endpoint", "http_status"])
+    REQUEST_LATENCY = Histogram("request_latency_seconds", "Request latency", ["endpoint"])
 except ValueError:
     # Already registered — grab them back from the registry
     REQUEST_COUNT = REGISTRY._names_to_collectors["request_count"]
@@ -201,11 +197,7 @@ def analyze_content(req: AnalyzeRequest, api_key: str = fastapi.Security(get_api
 
         # 8. Risk Fusion (now includes burst_score)
         fusion_res = risk_engine.calculate_risk(
-            hate_score=(
-                hate_res["score"]
-                if hate_res["label"] == "hate"
-                else 1.0 - hate_res["score"]
-            ),
+            hate_score=(hate_res["score"] if hate_res["label"] == "hate" else 1.0 - hate_res["score"]),
             misinfo_score=misinfo_score,
             bot_score=bot_score,
             trust_score=trust_score,
@@ -293,20 +285,12 @@ async def analyze_audio(
             misinfo = (
                 float(verify_res["confidence"])
                 if verify_res["verdict"] == "refuted"
-                else (
-                    max(0.0, 1.0 - verify_res["confidence"])
-                    if verify_res["verdict"] == "supported"
-                    else 0.5
-                )
+                else (max(0.0, 1.0 - verify_res["confidence"]) if verify_res["verdict"] == "supported" else 0.5)
             )
             bot_score = gnn_detector.predict(req.social_context)
             trust_score = trust_engine.get_user_trust(req.user_id)
             fusion = risk_engine.calculate_risk(
-                hate_score=(
-                    hate_res["score"]
-                    if hate_res["label"] == "hate"
-                    else 1.0 - hate_res["score"]
-                ),
+                hate_score=(hate_res["score"] if hate_res["label"] == "hate" else 1.0 - hate_res["score"]),
                 misinfo_score=misinfo,
                 bot_score=bot_score,
                 trust_score=trust_score,
@@ -327,9 +311,7 @@ async def analyze_audio(
                 "trust_score": trust_score,
             }
 
-        result = audio_analyzer.analyze(
-            tmp_path, user_id=user_id, analyze_fn=_run_pipeline
-        )
+        result = audio_analyzer.analyze(tmp_path, user_id=user_id, analyze_fn=_run_pipeline)
         REQUEST_COUNT.labels("POST", "/analyze/audio", 200).inc()
         return result
     except Exception as e:
@@ -384,20 +366,12 @@ async def analyze_image(
             misinfo = (
                 float(verify_res["confidence"])
                 if verify_res["verdict"] == "refuted"
-                else (
-                    max(0.0, 1.0 - verify_res["confidence"])
-                    if verify_res["verdict"] == "supported"
-                    else 0.5
-                )
+                else (max(0.0, 1.0 - verify_res["confidence"]) if verify_res["verdict"] == "supported" else 0.5)
             )
             bot_score = gnn_detector.predict(req.social_context)
             trust_score = trust_engine.get_user_trust(req.user_id)
             fusion = risk_engine.calculate_risk(
-                hate_score=(
-                    hate_res["score"]
-                    if hate_res["label"] == "hate"
-                    else 1.0 - hate_res["score"]
-                ),
+                hate_score=(hate_res["score"] if hate_res["label"] == "hate" else 1.0 - hate_res["score"]),
                 misinfo_score=misinfo,
                 bot_score=bot_score,
                 trust_score=trust_score,
@@ -418,9 +392,7 @@ async def analyze_image(
                 "trust_score": trust_score,
             }
 
-        result = ocr_analyzer.analyze(
-            tmp_path, user_id=user_id, psm=3, lang="eng", analyze_fn=_run_pipeline
-        )
+        result = ocr_analyzer.analyze(tmp_path, user_id=user_id, psm=3, lang="eng", analyze_fn=_run_pipeline)
         REQUEST_COUNT.labels("POST", "/analyze/image", 200).inc()
         return result
     except Exception as e:
@@ -438,9 +410,7 @@ class MultilingualRequest(BaseModel):
 
 
 @app.post("/analyze/multilingual")
-def analyze_multilingual(
-    req: AnalyzeRequest, api_key: str = fastapi.Security(get_api_key)
-):
+def analyze_multilingual(req: AnalyzeRequest, api_key: str = fastapi.Security(get_api_key)):
     models_loaded.wait()
     """
     v0.5 Multilingual Adapter Pipeline
@@ -467,21 +437,13 @@ def analyze_multilingual(
         misinfo = (
             float(verify_res["confidence"])
             if verify_res["verdict"] == "refuted"
-            else (
-                max(0.0, 1.0 - verify_res["confidence"])
-                if verify_res["verdict"] == "supported"
-                else 0.5
-            )
+            else (max(0.0, 1.0 - verify_res["confidence"]) if verify_res["verdict"] == "supported" else 0.5)
         )
         bot_score = gnn_detector.predict(inner_req.social_context)
         burst_res = burst_detector.detect(inner_req.temporal_events or [])
         trust_score = trust_engine.get_user_trust(inner_req.user_id)
         fusion = risk_engine.calculate_risk(
-            hate_score=(
-                hate_res["score"]
-                if hate_res["label"] == "hate"
-                else 1.0 - hate_res["score"]
-            ),
+            hate_score=(hate_res["score"] if hate_res["label"] == "hate" else 1.0 - hate_res["score"]),
             misinfo_score=misinfo,
             bot_score=bot_score,
             trust_score=trust_score,
@@ -508,9 +470,7 @@ def analyze_multilingual(
         }
 
     try:
-        result = multilingual_adapter.process(
-            req.text, user_id=req.user_id, analyze_fn=_run_pipeline
-        )
+        result = multilingual_adapter.process(req.text, user_id=req.user_id, analyze_fn=_run_pipeline)
         REQUEST_COUNT.labels("POST", "/analyze/multilingual", 200).inc()
         return result
     except Exception as e:
@@ -535,9 +495,7 @@ class FeedbackRequest(BaseModel):
 
 
 @app.post("/warning/impression")
-def log_warning_impression(
-    req: ImpressionRequest, api_key: str = fastapi.Security(get_api_key)
-):
+def log_warning_impression(req: ImpressionRequest, api_key: str = fastapi.Security(get_api_key)):
     """
     Log that a moderation warning was shown to a user.
     Returns the event record including the A/B variant assigned.
@@ -552,17 +510,13 @@ def log_warning_impression(
 
 
 @app.post("/warning/feedback")
-def log_warning_feedback(
-    req: FeedbackRequest, api_key: str = fastapi.Security(get_api_key)
-):
+def log_warning_feedback(req: FeedbackRequest, api_key: str = fastapi.Security(get_api_key)):
     """
     Record a user's response to a moderation warning.
     action: "ack" (dismissed) | "retraction" (deleted/edited post)
     """
     if req.action not in ("ack", "retraction"):
-        raise HTTPException(
-            status_code=400, detail="action must be 'ack' or 'retraction'"
-        )
+        raise HTTPException(status_code=400, detail="action must be 'ack' or 'retraction'")
     result = warning_tracker.log_feedback(req.event_id, req.action)
     if "error" in result:
         raise HTTPException(status_code=404, detail=result["error"])
@@ -603,15 +557,11 @@ def get_task_status(task_id: str, api_key: str = fastapi.Security(get_api_key)):
 
 
 @app.post("/analyze/async")
-def analyze_content_async(
-    req: AnalyzeRequest, api_key: str = fastapi.Security(get_api_key)
-):
+def analyze_content_async(req: AnalyzeRequest, api_key: str = fastapi.Security(get_api_key)):
     """
     Asynchronous version of /analyze. Returns a task_id immediately.
     """
-    task = async_analyze_text.delay(
-        req.user_id, req.text, req.social_context, req.temporal_events
-    )
+    task = async_analyze_text.delay(req.user_id, req.text, req.social_context, req.temporal_events)
     return {"task_id": task.id, "status": "PENDING"}
 
 

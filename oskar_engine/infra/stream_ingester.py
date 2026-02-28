@@ -22,9 +22,7 @@ class StreamIngester:
 
         # We fetch comments from heavily debated subreddits to test OSKAR's limits
         self.reddit_url = "https://www.reddit.com/r/politics+worldnews+conspiracy+technology/comments.json?limit=15"
-        self.headers = {
-            "User-Agent": "OSKAR-LiveStream-Bot/1.0 (Real-Time Moderation Analysis)"
-        }
+        self.headers = {"User-Agent": "OSKAR-LiveStream-Bot/1.0 (Real-Time Moderation Analysis)"}
 
     def fetch_reddit_comments(self):
         """Fetch the latest comments from Reddit."""
@@ -51,13 +49,9 @@ class StreamIngester:
                                     "user_id": c_data.get("author", "unknown_redditor"),
                                     "text": text,
                                     "social_context": {
-                                        "subreddit": c_data.get(
-                                            "subreddit_name_prefixed", ""
-                                        ),
+                                        "subreddit": c_data.get("subreddit_name_prefixed", ""),
                                         "score": c_data.get("score", 0),
-                                        "is_submitter": c_data.get(
-                                            "is_submitter", False
-                                        ),
+                                        "is_submitter": c_data.get("is_submitter", False),
                                     },
                                 }
                             )
@@ -82,21 +76,13 @@ class StreamIngester:
                     # Post to OSKAR API using key loaded from environment
                     api_key = os.getenv("OSKAR_API_KEY", "")
                     headers = {"X-API-Key": api_key}
-                    response = self.client.post(
-                        self.api_url, json=comment, headers=headers
-                    )
+                    response = self.client.post(self.api_url, json=comment, headers=headers)
 
                     if response.status_code == 200:
-                        subreddit = comment["social_context"].get(
-                            "subreddit", "unknown"
-                        )
-                        print(
-                            f"[StreamIngester] Injected {subreddit} post from {comment['user_id']}"
-                        )
+                        subreddit = comment["social_context"].get("subreddit", "unknown")
+                        print(f"[StreamIngester] Injected {subreddit} post from {comment['user_id']}")
                     else:
-                        print(
-                            f"[StreamIngester] API Error: {response.status_code} - {response.text}"
-                        )
+                        print(f"[StreamIngester] API Error: {response.status_code} - {response.text}")
 
                 except Exception as e:
                     print(f"[StreamIngester] Connection Error: {e}")

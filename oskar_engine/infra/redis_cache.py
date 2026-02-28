@@ -22,9 +22,7 @@ class RedisCache:
             print(f"[RedisCache] Connected to {redis_url}")
         except redis.ConnectionError:
             self.connected = False
-            print(
-                "[RedisCache] Warning: Could not connect to Redis. Falling back to local dictionary."
-            )
+            print("[RedisCache] Warning: Could not connect to Redis. Falling back to local dictionary.")
             self._fallback_cache = {}
 
     def set(self, key: str, value: Any, ttl_seconds: Optional[int] = None) -> bool:

@@ -91,22 +91,16 @@ class DriftDetector:
             self.baseline_count += 1
             if self.baseline_count == self.baseline_size:
                 # Lock in the baseline centroid
-                self.baseline_centroid = self._normalize(
-                    self.baseline_sum / self.baseline_size
-                )
+                self.baseline_centroid = self._normalize(self.baseline_sum / self.baseline_size)
 
         # 2. Update sliding window
         self.recent_embeddings.append(emb)
 
         # 3. Calculate drift if baseline forms and we have some recent data
-        if self.baseline_centroid is not None and len(self.recent_embeddings) >= min(
-            self.window_size, 2
-        ):
+        if self.baseline_centroid is not None and len(self.recent_embeddings) >= min(self.window_size, 2):
             # Calculate sliding window centroid
             window_sum = np.sum(list(self.recent_embeddings), axis=0)
-            self.recent_centroid = self._normalize(
-                window_sum / len(self.recent_embeddings)
-            )
+            self.recent_centroid = self._normalize(window_sum / len(self.recent_embeddings))
 
             # Cosine similarity (inner product of normalized vectors) -> Cosine distance
             cos_sim = np.dot(self.baseline_centroid, self.recent_centroid)

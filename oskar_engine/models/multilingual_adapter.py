@@ -84,9 +84,7 @@ class MultilingualAdapter:
             self.langdetect_ready = True
             print("[MultilingualAdapter] langdetect ready.")
         except ImportError:
-            print(
-                "[MultilingualAdapter] langdetect not installed. Language detection disabled."
-            )
+            print("[MultilingualAdapter] langdetect not installed. Language detection disabled.")
 
     def detect_language(self, text: str) -> tuple[str, float]:
         """
@@ -198,11 +196,7 @@ class MultilingualAdapter:
         lookup_code = "zh-cn" if lang_code.startswith("zh") else lang_code
 
         lang_info = SUPPORTED_LANGUAGES.get(lookup_code)
-        language_name = (
-            lang_info[0]
-            if lang_info
-            else ("English" if lang_code == "en" else "Unknown")
-        )
+        language_name = lang_info[0] if lang_info else ("English" if lang_code == "en" else "Unknown")
 
         was_translated = False
         if lang_code == "en":

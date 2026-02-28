@@ -85,13 +85,7 @@ class ClaimClassifier:
                     "expected_verifiable": False,
                 },
             ]
-        correct = sum(
-            1
-            for s in samples
-            if self.predict(s["text"])["is_verifiable"] == s["expected_verifiable"]
-        )
+        correct = sum(1 for s in samples if self.predict(s["text"])["is_verifiable"] == s["expected_verifiable"])
         acc = round(correct / len(samples), 4)
-        print(
-            f"[ClaimClassifier] Benchmark accuracy: {acc*100:.1f}% ({correct}/{len(samples)})"
-        )
+        print(f"[ClaimClassifier] Benchmark accuracy: {acc*100:.1f}% ({correct}/{len(samples)})")
         return {"accuracy": acc, "n": len(samples)}

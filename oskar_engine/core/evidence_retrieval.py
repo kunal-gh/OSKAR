@@ -56,9 +56,7 @@ class EvidenceRetrieval:
         if not exists:
             self.qdrant.create_collection(
                 collection_name=COLLECTION_NAME,
-                vectors_config=qmodels.VectorParams(
-                    size=self.dim, distance=qmodels.Distance.COSINE
-                ),
+                vectors_config=qmodels.VectorParams(size=self.dim, distance=qmodels.Distance.COSINE),
             )
 
     # ------------------------------------------------------------------
@@ -89,14 +87,9 @@ class EvidenceRetrieval:
 
         q_emb = self.encoder.encode([query], convert_to_numpy=True)[0].tolist()
 
-        hits = self.qdrant.search(
-            collection_name=COLLECTION_NAME, query_vector=q_emb, limit=top_k
-        )
+        hits = self.qdrant.search(collection_name=COLLECTION_NAME, query_vector=q_emb, limit=top_k)
 
-        return [
-            {"id": hit.id, "text": hit.payload["text"], "score": hit.score}
-            for hit in hits
-        ]
+        return [{"id": hit.id, "text": hit.payload["text"], "score": hit.score} for hit in hits]
 
     def verify_claim(self, claim: str) -> dict:
         """

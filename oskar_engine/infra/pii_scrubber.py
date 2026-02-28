@@ -24,9 +24,7 @@ EMAIL_REGEX = re.compile(r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b")
 PHONE_REGEX = re.compile(r"\+?1?\s*\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}")
 
 # Standard 9-digit US SSN (XXX-XX-XXXX or XXXXXXXXX)
-SSN_REGEX = re.compile(
-    r"\b(?!(000|666|9))\d{3}-(?!00)\d{2}-(?!0000)\d{4}\b|\b(?!(000|666|9))\d{9}\b"
-)
+SSN_REGEX = re.compile(r"\b(?!(000|666|9))\d{3}-(?!00)\d{2}-(?!0000)\d{4}\b|\b(?!(000|666|9))\d{9}\b")
 
 # Basic 16-digit credit card math (Visa/Mastercard)
 CREDIT_CARD_REGEX = re.compile(r"\b(?:\d[ -]*?){13,16}\b")
@@ -75,9 +73,7 @@ class PIIScrubber:
             for cc in potential_ccs:
                 digits = re.sub(r"\D", "", cc)
                 if 13 <= len(digits) <= 16:
-                    text = text.replace(
-                        cc, self._replace(re.match(r".*", cc), "CREDIT_CARD")
-                    )
+                    text = text.replace(cc, self._replace(re.match(r".*", cc), "CREDIT_CARD"))
                     if "credit_card" not in redactions:
                         redactions.append("credit_card")
 

@@ -126,9 +126,7 @@ class BurstDetector:
                 self.trained = True
                 print(f"[BurstDetector] Loaded weights from {path}")
             except Exception as e:
-                print(
-                    f"[BurstDetector] Could not load model: {e}. Using untrained baseline."
-                )
+                print(f"[BurstDetector] Could not load model: {e}. Using untrained baseline.")
         else:
             print(f"[BurstDetector] No model at '{path}'. Using untrained baseline.")
 
@@ -145,9 +143,7 @@ class BurstDetector:
         user_counts = [e.get("user_count", 1) for e in events]
 
         # Compute time deltas between consecutive posts (first delta = 0)
-        deltas = [0.0] + [
-            float(timestamps[i] - timestamps[i - 1]) for i in range(1, len(timestamps))
-        ]
+        deltas = [0.0] + [float(timestamps[i] - timestamps[i - 1]) for i in range(1, len(timestamps))]
 
         # Normalize
         max_delta = max(deltas) if max(deltas) > 0 else 1.0

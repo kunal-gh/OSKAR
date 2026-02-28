@@ -61,9 +61,7 @@ class WarningTracker:
             "action": "impression",
         }
 
-        redis_cache.set(
-            f"warning:event:{event_id}", event, ttl_seconds=60 * 60 * 24 * 7
-        )
+        redis_cache.set(f"warning:event:{event_id}", event, ttl_seconds=60 * 60 * 24 * 7)
         self.ab.record_impression(user_id, variant)
         return event
 
@@ -81,9 +79,7 @@ class WarningTracker:
             "latency_ms": round((time.time() - original["ts"]) * 1000, 1),
         }
 
-        redis_cache.set(
-            f"warning:event:{event_id}_{action}", feedback, ttl_seconds=60 * 60 * 24 * 7
-        )
+        redis_cache.set(f"warning:event:{event_id}_{action}", feedback, ttl_seconds=60 * 60 * 24 * 7)
         self.ab.record_feedback(original["user_id"], original["variant"], action)
         return feedback
 

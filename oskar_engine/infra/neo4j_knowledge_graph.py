@@ -219,9 +219,7 @@ class KnowledgeGraph:
             "their",
             "about",
         }
-        tokens = [
-            w.lower() for w in re.findall(r"\b\w{4,}\b", claim) if w.lower() not in STOP
-        ]
+        tokens = [w.lower() for w in re.findall(r"\b\w{4,}\b", claim) if w.lower() not in STOP]
         if not tokens:
             return []
 
