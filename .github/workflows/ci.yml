@@ -25,13 +25,13 @@ jobs:
         pip install black flake8 isort
         
     - name: Format with Black (Check Only)
-      run: black --check MVP/src/ MVP/tests/
+      run: black --check oskar_engine/
         
     - name: Check Imports with Isort
-      run: isort --check-only MVP/src/ MVP/tests/
+      run: isort --check-only oskar_engine/
         
     - name: Lint with Flake8
-      run: flake8 MVP/src/ MVP/tests/
+      run: flake8 oskar_engine/
 
   unit-tests:
     name: Automated Unit Testing (Pytest)
@@ -59,5 +59,4 @@ jobs:
         OSKAR_SYSTEM_KEY: ${{ secrets.OSKAR_SYSTEM_KEY }}
         PYTHONPATH: "."
       run: |
-        cd MVP
-        pytest tests/ -v --cov=src --cov-report=term-missing
+        pytest MVP/tests/ -v --cov=oskar_engine --cov-report=term-missing
