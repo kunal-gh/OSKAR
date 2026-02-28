@@ -11,13 +11,13 @@ MVP/prometheus.yml
 MVP/pyproject.toml
 
 # --- API Dashboard UI (separate Vercel deployment) ---
-MVP/src/api/dashboard/
+oskar_engine/api/dashboard/
 Showcase/
 
 # --- Infrastructure scripts (internal tooling only) ---
-MVP/src/seed_microservices.py
-MVP/src/celery_app.py
-MVP/src/tasks.py
+oskar_engine/seed_microservices.py
+oskar_engine/celery_app.py
+oskar_engine/tasks.py
 
 # --- Credentials & Environment ---
 .env
@@ -58,4 +58,4 @@ MVP/knowledge_base/
 
 # --- Misc ---
 *.txt
-!MVP/requirements.txt
+!oskar_engine/requirements.txt

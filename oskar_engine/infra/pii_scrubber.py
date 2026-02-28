@@ -75,7 +75,9 @@ class PIIScrubber:
             for cc in potential_ccs:
                 digits = re.sub(r"\D", "", cc)
                 if 13 <= len(digits) <= 16:
-                    text = text.replace(cc, self._replace(re.match(r".*", cc), "CREDIT_CARD"))
+                    text = text.replace(
+                        cc, self._replace(re.match(r".*", cc), "CREDIT_CARD")
+                    )
                     if "credit_card" not in redactions:
                         redactions.append("credit_card")
 
@@ -88,4 +90,8 @@ class PIIScrubber:
             if "phone" not in redactions:
                 redactions.append("phone")
 
-        return {"clean_text": text, "pii_found": len(redactions) > 0, "redactions": redactions}
+        return {
+            "clean_text": text,
+            "pii_found": len(redactions) > 0,
+            "redactions": redactions,
+        }

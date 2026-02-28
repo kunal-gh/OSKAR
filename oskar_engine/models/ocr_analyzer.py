@@ -65,7 +65,9 @@ class OCRAnalyzer:
         except Exception as e:
             print(f"[OCRAnalyzer] Tesseract not available: {e}. Running in dummy mode.")
 
-    def extract_text(self, image_path: str, psm: int = DEFAULT_PSM, lang: str = "eng") -> dict:
+    def extract_text(
+        self, image_path: str, psm: int = DEFAULT_PSM, lang: str = "eng"
+    ) -> dict:
         """
         Extract text from an image file using Tesseract OCR.
 
@@ -114,8 +116,12 @@ class OCRAnalyzer:
             data = pytesseract.image_to_data(
                 img, lang=lang, config=config, output_type=pytesseract.Output.DICT
             )
-            confidences = [c for c in data["conf"] if isinstance(c, (int, float)) and c > 0]
-            mean_conf = round(sum(confidences) / len(confidences), 1) if confidences else 0.0
+            confidences = [
+                c for c in data["conf"] if isinstance(c, (int, float)) and c > 0
+            ]
+            mean_conf = (
+                round(sum(confidences) / len(confidences), 1) if confidences else 0.0
+            )
 
             cleaned = raw_text.strip()
             words = cleaned.split()

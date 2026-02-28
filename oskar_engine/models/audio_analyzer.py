@@ -107,7 +107,9 @@ class AudioAnalyzer:
                 "error": str(e),
             }
 
-    def analyze(self, audio_path: str, user_id: str = "anonymous", analyze_fn=None) -> dict:
+    def analyze(
+        self, audio_path: str, user_id: str = "anonymous", analyze_fn=None
+    ) -> dict:
         """
         Full audio → OSKAR pipeline:
         1. Transcribe audio with Whisper

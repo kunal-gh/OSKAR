@@ -84,7 +84,9 @@ class MultilingualAdapter:
             self.langdetect_ready = True
             print("[MultilingualAdapter] langdetect ready.")
         except ImportError:
-            print("[MultilingualAdapter] langdetect not installed. Language detection disabled.")
+            print(
+                "[MultilingualAdapter] langdetect not installed. Language detection disabled."
+            )
 
     def detect_language(self, text: str) -> tuple[str, float]:
         """
@@ -151,7 +153,11 @@ class MultilingualAdapter:
         tokenizer, model = translator
         try:
             inputs = tokenizer(
-                [text], return_tensors="pt", padding=True, truncation=True, max_length=512
+                [text],
+                return_tensors="pt",
+                padding=True,
+                truncation=True,
+                max_length=512,
             )
             outputs = model.generate(**inputs, max_new_tokens=512)
             translated = tokenizer.decode(outputs[0], skip_special_tokens=True)
@@ -161,7 +167,10 @@ class MultilingualAdapter:
             return text
 
     def process(
-        self, text: str, user_id: str = "anonymous", analyze_fn: Optional[Callable] = None
+        self,
+        text: str,
+        user_id: str = "anonymous",
+        analyze_fn: Optional[Callable] = None,
     ) -> dict:
         """
         Full multilingual → OSKAR pipeline:
@@ -190,7 +199,9 @@ class MultilingualAdapter:
 
         lang_info = SUPPORTED_LANGUAGES.get(lookup_code)
         language_name = (
-            lang_info[0] if lang_info else ("English" if lang_code == "en" else "Unknown")
+            lang_info[0]
+            if lang_info
+            else ("English" if lang_code == "en" else "Unknown")
         )
 
         was_translated = False

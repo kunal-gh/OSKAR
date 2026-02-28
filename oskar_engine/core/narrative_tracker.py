@@ -78,7 +78,11 @@ class NarrativeTracker:
         self.index.add(np.array([embedding]))
 
         self.id_to_cluster[idx] = cluster_id
-        self.clusters[cluster_id] = {"centroid": embedding, "size": 1, "created_at": time.time()}
+        self.clusters[cluster_id] = {
+            "centroid": embedding,
+            "size": 1,
+            "created_at": time.time(),
+        }
         return cluster_id
 
     def _update_cluster_centroid(self, cluster_id: str, new_embedding: np.ndarray):

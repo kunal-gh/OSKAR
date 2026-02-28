@@ -41,7 +41,9 @@ class CanaryRouter:
         # Rollback monitoring thread
         self.window = evaluation_window_seconds
         self._lock = threading.Lock()
-        self._monitor_thread = threading.Thread(target=self._monitor_health, daemon=True)
+        self._monitor_thread = threading.Thread(
+            target=self._monitor_health, daemon=True
+        )
         self._monitor_thread.start()
 
     def set_split(self, split: float):
@@ -61,9 +63,14 @@ class CanaryRouter:
             with self._lock:
                 if self.traffic_split > 0 and self.canary_requests > 5:
                     error_rate = self.canary_errors / self.canary_requests
-                    avg_latency = (self.canary_latency_sum / self.canary_requests) * 1000
+                    avg_latency = (
+                        self.canary_latency_sum / self.canary_requests
+                    ) * 1000
 
-                    if error_rate > self.max_error_rate or avg_latency > self.max_latency_ms:
+                    if (
+                        error_rate > self.max_error_rate
+                        or avg_latency > self.max_latency_ms
+                    ):
                         logger.warning(
                             f"CANARY TRIPPED: Error Route={error_rate:.2f}, Latency={avg_latency:.1f}ms. "
                             f"Rolling back traffic split to 0%."
@@ -102,7 +109,9 @@ class CanaryRouter:
                 self.canary_latency_sum += latency
                 self.canary_errors += 1
 
-            logger.error(f"Canary model evaluation failed: {e}. Falling back to stable.")
+            logger.error(
+                f"Canary model evaluation failed: {e}. Falling back to stable."
+            )
             fallback_result = self.stable_model.predict(text)
             fallback_result["_canary_fallback"] = True
             return fallback_result

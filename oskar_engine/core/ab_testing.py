@@ -75,7 +75,12 @@ class ABTestingEngine:
         log_id = redis_cache.incr("ab:log_counter")
         redis_cache.set(
             f"ab:log:{log_id}",
-            {"ts": time.time(), "user_id": user_id, "variant": variant, "action": "impression"},
+            {
+                "ts": time.time(),
+                "user_id": user_id,
+                "variant": variant,
+                "action": "impression",
+            },
             ttl_seconds=60 * 60 * 24 * 7,
         )
 
@@ -89,7 +94,12 @@ class ABTestingEngine:
         log_id = redis_cache.incr("ab:log_counter")
         redis_cache.set(
             f"ab:log:{log_id}",
-            {"ts": time.time(), "user_id": user_id, "variant": variant, "action": action},
+            {
+                "ts": time.time(),
+                "user_id": user_id,
+                "variant": variant,
+                "action": action,
+            },
             ttl_seconds=60 * 60 * 24 * 7,
         )
 

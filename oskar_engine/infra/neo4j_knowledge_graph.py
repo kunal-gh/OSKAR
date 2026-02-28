@@ -39,7 +39,11 @@ SEED_TRIPLES = [
     ("IPCC", "REPORTS", "97% of scientists agree climate change is human-caused"),
     ("CO2 levels", "REACHED", "420 ppm in 2023, highest in 800000 years"),
     ("Arctic ice", "HAS_DECLINED", "By 40% since 1980"),
-    ("Global average temperature", "RISEN_BY", "1.2 degrees Celsius since industrialization"),
+    (
+        "Global average temperature",
+        "RISEN_BY",
+        "1.2 degrees Celsius since industrialization",
+    ),
     ("Fossil fuel combustion", "IS_PRIMARY_CAUSE_OF", "Anthropogenic CO2 emissions"),
     ("Paris Agreement", "SIGNED_BY", "196 countries in 2015"),
     ("Sea levels", "RISING_AT", "3.7mm per year due to ice melt"),
@@ -69,27 +73,51 @@ SEED_TRIPLES = [
     ("Electromagnetic hypersensitivity", "NOT_SUPPORTED_BY", "Scientific evidence"),
     ("Fiber optic cables", "DO_NOT", "Use radio waves"),
     # Flat Earth and Space
-    ("Earth", "IS_PROVEN_SPHERICAL_BY", "Satellite imagery, physics, and circumnavigation"),
+    (
+        "Earth",
+        "IS_PROVEN_SPHERICAL_BY",
+        "Satellite imagery, physics, and circumnavigation",
+    ),
     ("NASA", "HAS_PHOTOGRAPHIC_EVIDENCE_OF", "Earth's curvature"),
     ("International Space Station", "HAS_BEEN_CONTINUOUSLY_INHABITED_SINCE", "2000"),
     ("Gravity", "CAUSES", "Earth's spherical shape"),
-    ("Moon landing 1969", "IS_VERIFIED_BY", "Independent scientific communities worldwide"),
-    ("Lunar retroreflectors", "PLACED_BY", "Apollo missions and still used by researchers"),
+    (
+        "Moon landing 1969",
+        "IS_VERIFIED_BY",
+        "Independent scientific communities worldwide",
+    ),
+    (
+        "Lunar retroreflectors",
+        "PLACED_BY",
+        "Apollo missions and still used by researchers",
+    ),
     ("Flat Earth theory", "CONTRADICTED_BY", "GPS, aviation, and satellite data"),
     ("Stars", "ARE", "Distant suns in the Milky Way galaxy"),
-    ("James Webb telescope", "PROVIDES", "Deep space imagery at unprecedented resolution"),
+    (
+        "James Webb telescope",
+        "PROVIDES",
+        "Deep space imagery at unprecedented resolution",
+    ),
     ("Cosmic microwave background", "IS_EVIDENCE_FOR", "Big Bang cosmology"),
     # Health Misinformation
     ("Bleach", "IS_TOXIC", "And must never be ingested"),
     ("Ivermectin", "NOT_APPROVED_BY_FDA_FOR", "COVID-19 treatment in humans"),
     ("Hydroxychloroquine", "SHOWED_NO_BENEFIT_IN", "Large randomized COVID-19 trials"),
-    ("Vitamin D deficiency", "LINKED_TO", "Higher COVID-19 severity but not prevention"),
+    (
+        "Vitamin D deficiency",
+        "LINKED_TO",
+        "Higher COVID-19 severity but not prevention",
+    ),
     ("Masks", "REDUCE_TRANSMISSION_OF", "Respiratory droplets when worn correctly"),
     ("Antibiotics", "DO_NOT_WORK_AGAINST", "Viral infections"),
     ("Autism", "HAS_COMPLEX_GENETIC_AND_ENVIRONMENTAL", "Origins being researched"),
     ("Homeopathy", "HAS_NO_EVIDENCE_BEYOND", "Placebo effect in rigorous trials"),
     ("Essential oils", "ARE_NOT_PROVEN_TO", "Treat cancer or serious illness"),
-    ("Flu vaccine", "RECOMMENDED_ANNUALLY_BECAUSE", "Influenza strains evolve each year"),
+    (
+        "Flu vaccine",
+        "RECOMMENDED_ANNUALLY_BECAUSE",
+        "Influenza strains evolve each year",
+    ),
     # Financial Misinformation
     ("Bitcoin", "IS", "A decentralized digital currency with high volatility"),
     (
@@ -107,7 +135,11 @@ SEED_TRIPLES = [
         "Recruitment becomes mathematically impossible",
     ),
     ("NFTs", "ARE", "Digital ownership tokens with highly speculative value"),
-    ("Central bank digital currencies", "BEING_EXPLORED_BY", "Over 100 countries globally"),
+    (
+        "Central bank digital currencies",
+        "BEING_EXPLORED_BY",
+        "Over 100 countries globally",
+    ),
     ("Wealth inequality", "MEASURED_BY", "Gini coefficient across nations"),
 ]
 
@@ -187,7 +219,9 @@ class KnowledgeGraph:
             "their",
             "about",
         }
-        tokens = [w.lower() for w in re.findall(r"\b\w{4,}\b", claim) if w.lower() not in STOP]
+        tokens = [
+            w.lower() for w in re.findall(r"\b\w{4,}\b", claim) if w.lower() not in STOP
+        ]
         if not tokens:
             return []
 

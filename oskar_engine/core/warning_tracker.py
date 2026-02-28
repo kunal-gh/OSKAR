@@ -61,7 +61,9 @@ class WarningTracker:
             "action": "impression",
         }
 
-        redis_cache.set(f"warning:event:{event_id}", event, ttl_seconds=60 * 60 * 24 * 7)
+        redis_cache.set(
+            f"warning:event:{event_id}", event, ttl_seconds=60 * 60 * 24 * 7
+        )
         self.ab.record_impression(user_id, variant)
         return event
 

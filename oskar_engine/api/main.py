@@ -1,22 +1,19 @@
 import os
 import tempfile
+import threading
 import time
 from typing import Any, Dict, List, Optional
 
 import fastapi
-import threading
-
 from celery.result import AsyncResult
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.security import APIKeyHeader
 from fastapi.staticfiles import StaticFiles
-
 # Initialize Prometheus metrics (safe for uvicorn --reload)
 from prometheus_client import REGISTRY, Counter, Histogram, make_asgi_app
 from pydantic import BaseModel
-
 from src.core.burst_detector import BurstDetector
 from src.core.cognitive_engine import CognitiveEngine
 from src.core.evidence_retrieval import EvidenceRetrieval
@@ -32,13 +29,16 @@ from src.models.hate_classifier import HateClassifier
 from src.models.multilingual_adapter import MultilingualAdapter
 from src.models.ocr_analyzer import OCRAnalyzer
 from src.models.risk_fusion import RiskFusionEngine
-from src.tasks import async_analyze_audio, async_analyze_image, async_analyze_text
+from src.tasks import (async_analyze_audio, async_analyze_image,
+                       async_analyze_text)
 
 try:
     REQUEST_COUNT = Counter(
         "request_count", "App Request Count", ["method", "endpoint", "http_status"]
     )
-    REQUEST_LATENCY = Histogram("request_latency_seconds", "Request latency", ["endpoint"])
+    REQUEST_LATENCY = Histogram(
+        "request_latency_seconds", "Request latency", ["endpoint"]
+    )
 except ValueError:
     # Already registered — grab them back from the registry
     REQUEST_COUNT = REGISTRY._names_to_collectors["request_count"]
@@ -202,7 +202,9 @@ def analyze_content(req: AnalyzeRequest, api_key: str = fastapi.Security(get_api
         # 8. Risk Fusion (now includes burst_score)
         fusion_res = risk_engine.calculate_risk(
             hate_score=(
-                hate_res["score"] if hate_res["label"] == "hate" else 1.0 - hate_res["score"]
+                hate_res["score"]
+                if hate_res["label"] == "hate"
+                else 1.0 - hate_res["score"]
             ),
             misinfo_score=misinfo_score,
             bot_score=bot_score,
@@ -227,7 +229,10 @@ def analyze_content(req: AnalyzeRequest, api_key: str = fastapi.Security(get_api
                 "hate": hate_res,
                 "claim": claim_res,
                 "verification": verify_res,
-                "bot_swarm": {"probability": bot_score, "enabled": gnn_detector.enabled},
+                "bot_swarm": {
+                    "probability": bot_score,
+                    "enabled": gnn_detector.enabled,
+                },
                 "burst_detect": {
                     "anomaly_score": burst_score,
                     "is_burst": burst_result["is_burst"],
@@ -259,7 +264,8 @@ async def analyze_audio(
     suffix = os.path.splitext(file.filename or "")[1].lower()
     if suffix not in ALLOWED:
         raise HTTPException(
-            status_code=400, detail=f"Unsupported format '{suffix}'. Allowed: {', '.join(ALLOWED)}"
+            status_code=400,
+            detail=f"Unsupported format '{suffix}'. Allowed: {', '.join(ALLOWED)}",
         )
 
     # Save the uploaded file to a temp location for Whisper
@@ -297,7 +303,9 @@ async def analyze_audio(
             trust_score = trust_engine.get_user_trust(req.user_id)
             fusion = risk_engine.calculate_risk(
                 hate_score=(
-                    hate_res["score"] if hate_res["label"] == "hate" else 1.0 - hate_res["score"]
+                    hate_res["score"]
+                    if hate_res["label"] == "hate"
+                    else 1.0 - hate_res["score"]
                 ),
                 misinfo_score=misinfo,
                 bot_score=bot_score,
@@ -311,12 +319,17 @@ async def analyze_audio(
                     "hate": hate_res,
                     "claim": claim_res,
                     "verification": verify_res,
-                    "bot_swarm": {"probability": bot_score, "enabled": gnn_detector.enabled},
+                    "bot_swarm": {
+                        "probability": bot_score,
+                        "enabled": gnn_detector.enabled,
+                    },
                 },
                 "trust_score": trust_score,
             }
 
-        result = audio_analyzer.analyze(tmp_path, user_id=user_id, analyze_fn=_run_pipeline)
+        result = audio_analyzer.analyze(
+            tmp_path, user_id=user_id, analyze_fn=_run_pipeline
+        )
         REQUEST_COUNT.labels("POST", "/analyze/audio", 200).inc()
         return result
     except Exception as e:
@@ -344,7 +357,8 @@ async def analyze_image(
     suffix = os.path.splitext(file.filename or "")[1].lower()
     if suffix not in ALLOWED:
         raise HTTPException(
-            status_code=400, detail=f"Unsupported format '{suffix}'. Allowed: {', '.join(ALLOWED)}"
+            status_code=400,
+            detail=f"Unsupported format '{suffix}'. Allowed: {', '.join(ALLOWED)}",
         )
 
     with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as tmp:
@@ -380,7 +394,9 @@ async def analyze_image(
             trust_score = trust_engine.get_user_trust(req.user_id)
             fusion = risk_engine.calculate_risk(
                 hate_score=(
-                    hate_res["score"] if hate_res["label"] == "hate" else 1.0 - hate_res["score"]
+                    hate_res["score"]
+                    if hate_res["label"] == "hate"
+                    else 1.0 - hate_res["score"]
                 ),
                 misinfo_score=misinfo,
                 bot_score=bot_score,
@@ -394,7 +410,10 @@ async def analyze_image(
                     "hate": hate_res,
                     "claim": claim_res,
                     "verification": verify_res,
-                    "bot_swarm": {"probability": bot_score, "enabled": gnn_detector.enabled},
+                    "bot_swarm": {
+                        "probability": bot_score,
+                        "enabled": gnn_detector.enabled,
+                    },
                 },
                 "trust_score": trust_score,
             }
@@ -419,7 +438,9 @@ class MultilingualRequest(BaseModel):
 
 
 @app.post("/analyze/multilingual")
-def analyze_multilingual(req: AnalyzeRequest, api_key: str = fastapi.Security(get_api_key)):
+def analyze_multilingual(
+    req: AnalyzeRequest, api_key: str = fastapi.Security(get_api_key)
+):
     models_loaded.wait()
     """
     v0.5 Multilingual Adapter Pipeline
@@ -436,7 +457,12 @@ def analyze_multilingual(req: AnalyzeRequest, api_key: str = fastapi.Security(ge
         verify_res = (
             er.verify_claim(inner_req.text)
             if claim_res["is_verifiable"]
-            else {"verdict": "uncertain", "confidence": 0.0, "evidence": None, "graph_triples": []}
+            else {
+                "verdict": "uncertain",
+                "confidence": 0.0,
+                "evidence": None,
+                "graph_triples": [],
+            }
         )
         misinfo = (
             float(verify_res["confidence"])
@@ -452,7 +478,9 @@ def analyze_multilingual(req: AnalyzeRequest, api_key: str = fastapi.Security(ge
         trust_score = trust_engine.get_user_trust(inner_req.user_id)
         fusion = risk_engine.calculate_risk(
             hate_score=(
-                hate_res["score"] if hate_res["label"] == "hate" else 1.0 - hate_res["score"]
+                hate_res["score"]
+                if hate_res["label"] == "hate"
+                else 1.0 - hate_res["score"]
             ),
             misinfo_score=misinfo,
             bot_score=bot_score,
@@ -467,7 +495,10 @@ def analyze_multilingual(req: AnalyzeRequest, api_key: str = fastapi.Security(ge
                 "hate": hate_res,
                 "claim": claim_res,
                 "verification": verify_res,
-                "bot_swarm": {"probability": bot_score, "enabled": gnn_detector.enabled},
+                "bot_swarm": {
+                    "probability": bot_score,
+                    "enabled": gnn_detector.enabled,
+                },
                 "burst_detect": {
                     "anomaly_score": burst_res["anomaly_score"],
                     "is_burst": burst_res["is_burst"],
@@ -504,25 +535,34 @@ class FeedbackRequest(BaseModel):
 
 
 @app.post("/warning/impression")
-def log_warning_impression(req: ImpressionRequest, api_key: str = fastapi.Security(get_api_key)):
+def log_warning_impression(
+    req: ImpressionRequest, api_key: str = fastapi.Security(get_api_key)
+):
     """
     Log that a moderation warning was shown to a user.
     Returns the event record including the A/B variant assigned.
     """
     event = warning_tracker.log_impression(
-        req.user_id, risk_score=req.risk_score, route=req.route, content_hash=req.content_hash
+        req.user_id,
+        risk_score=req.risk_score,
+        route=req.route,
+        content_hash=req.content_hash,
     )
     return event
 
 
 @app.post("/warning/feedback")
-def log_warning_feedback(req: FeedbackRequest, api_key: str = fastapi.Security(get_api_key)):
+def log_warning_feedback(
+    req: FeedbackRequest, api_key: str = fastapi.Security(get_api_key)
+):
     """
     Record a user's response to a moderation warning.
     action: "ack" (dismissed) | "retraction" (deleted/edited post)
     """
     if req.action not in ("ack", "retraction"):
-        raise HTTPException(status_code=400, detail="action must be 'ack' or 'retraction'")
+        raise HTTPException(
+            status_code=400, detail="action must be 'ack' or 'retraction'"
+        )
     result = warning_tracker.log_feedback(req.event_id, req.action)
     if "error" in result:
         raise HTTPException(status_code=404, detail=result["error"])
@@ -563,11 +603,15 @@ def get_task_status(task_id: str, api_key: str = fastapi.Security(get_api_key)):
 
 
 @app.post("/analyze/async")
-def analyze_content_async(req: AnalyzeRequest, api_key: str = fastapi.Security(get_api_key)):
+def analyze_content_async(
+    req: AnalyzeRequest, api_key: str = fastapi.Security(get_api_key)
+):
     """
     Asynchronous version of /analyze. Returns a task_id immediately.
     """
-    task = async_analyze_text.delay(req.user_id, req.text, req.social_context, req.temporal_events)
+    task = async_analyze_text.delay(
+        req.user_id, req.text, req.social_context, req.temporal_events
+    )
     return {"task_id": task.id, "status": "PENDING"}
 
 
@@ -584,7 +628,8 @@ async def analyze_audio_async(
     suffix = os.path.splitext(file.filename or "")[1].lower()
     if suffix not in ALLOWED:
         raise HTTPException(
-            status_code=400, detail=f"Unsupported format '{suffix}'. Allowed: {', '.join(ALLOWED)}"
+            status_code=400,
+            detail=f"Unsupported format '{suffix}'. Allowed: {', '.join(ALLOWED)}",
         )
 
     # Save to a temporary file that the Celery worker can access
@@ -611,7 +656,8 @@ async def analyze_image_async(
     suffix = os.path.splitext(file.filename or "")[1].lower()
     if suffix not in ALLOWED:
         raise HTTPException(
-            status_code=400, detail=f"Unsupported format '{suffix}'. Allowed: {', '.join(ALLOWED)}"
+            status_code=400,
+            detail=f"Unsupported format '{suffix}'. Allowed: {', '.join(ALLOWED)}",
         )
 
     with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as tmp:

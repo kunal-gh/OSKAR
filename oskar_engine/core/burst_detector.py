@@ -79,7 +79,11 @@ class _LSTMDecoder(nn.Module):
 
 class LSTMAutoEncoder(nn.Module):
     def __init__(
-        self, input_dim=INPUT_DIM, hidden_dim=HIDDEN_DIM, latent_dim=LATENT_DIM, seq_len=SEQ_LEN
+        self,
+        input_dim=INPUT_DIM,
+        hidden_dim=HIDDEN_DIM,
+        latent_dim=LATENT_DIM,
+        seq_len=SEQ_LEN,
     ):
         super().__init__()
         self.encoder = _LSTMEncoder(input_dim, hidden_dim, latent_dim)
@@ -122,7 +126,9 @@ class BurstDetector:
                 self.trained = True
                 print(f"[BurstDetector] Loaded weights from {path}")
             except Exception as e:
-                print(f"[BurstDetector] Could not load model: {e}. Using untrained baseline.")
+                print(
+                    f"[BurstDetector] Could not load model: {e}. Using untrained baseline."
+                )
         else:
             print(f"[BurstDetector] No model at '{path}'. Using untrained baseline.")
 

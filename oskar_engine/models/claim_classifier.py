@@ -67,14 +67,23 @@ class ClaimClassifier:
             samples = [
                 {"text": "Vaccines cause autism.", "expected_verifiable": True},
                 {"text": "CO2 has reached 420 ppm.", "expected_verifiable": True},
-                {"text": "Pineapple on pizza is the best.", "expected_verifiable": False},
+                {
+                    "text": "Pineapple on pizza is the best.",
+                    "expected_verifiable": False,
+                },
                 {"text": "The 2020 election was stolen.", "expected_verifiable": True},
                 {"text": "I love sunny days.", "expected_verifiable": False},
                 {"text": "5G towers cause COVID-19.", "expected_verifiable": True},
                 {"text": "Climate change is a hoax.", "expected_verifiable": True},
-                {"text": "Coffee tastes better lukewarm.", "expected_verifiable": False},
+                {
+                    "text": "Coffee tastes better lukewarm.",
+                    "expected_verifiable": False,
+                },
                 {"text": "The moon landing was faked.", "expected_verifiable": True},
-                {"text": "Star Wars is the greatest franchise ever.", "expected_verifiable": False},
+                {
+                    "text": "Star Wars is the greatest franchise ever.",
+                    "expected_verifiable": False,
+                },
             ]
         correct = sum(
             1
@@ -82,5 +91,7 @@ class ClaimClassifier:
             if self.predict(s["text"])["is_verifiable"] == s["expected_verifiable"]
         )
         acc = round(correct / len(samples), 4)
-        print(f"[ClaimClassifier] Benchmark accuracy: {acc*100:.1f}% ({correct}/{len(samples)})")
+        print(
+            f"[ClaimClassifier] Benchmark accuracy: {acc*100:.1f}% ({correct}/{len(samples)})"
+        )
         return {"accuracy": acc, "n": len(samples)}

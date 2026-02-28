@@ -29,7 +29,11 @@ class TrustEngine:
             return data
 
         # 2. Check Postgres
-        user = self.db.query(UserTrust).filter(UserTrust.user_id_hash == user_id_hash).first()
+        user = (
+            self.db.query(UserTrust)
+            .filter(UserTrust.user_id_hash == user_id_hash)
+            .first()
+        )
         if user:
             data = {
                 "total_claims": user.total_claims,
@@ -56,7 +60,11 @@ class TrustEngine:
 
     def _save_user_data(self, user_id_hash: str, data: dict):
         # 1. Update Postgres
-        user = self.db.query(UserTrust).filter(UserTrust.user_id_hash == user_id_hash).first()
+        user = (
+            self.db.query(UserTrust)
+            .filter(UserTrust.user_id_hash == user_id_hash)
+            .first()
+        )
         if user:
             user.total_claims = data["total_claims"]
             user.correct_claims = data["correct_claims"]

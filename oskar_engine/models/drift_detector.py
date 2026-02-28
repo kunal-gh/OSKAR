@@ -23,7 +23,8 @@ from prometheus_client import Gauge
 
 # Metric to expose to Prometheus/Grafana
 DRIFT_GAUGE = Gauge(
-    "oskar_data_drift_score", "Cosine distance between recent embedding window and baseline"
+    "oskar_data_drift_score",
+    "Cosine distance between recent embedding window and baseline",
 )
 
 # Configuration
@@ -38,7 +39,10 @@ class DriftDetector:
     """
 
     def __init__(
-        self, embedder=None, window_size: int = WINDOW_SIZE, baseline_size: int = BASELINE_SIZE
+        self,
+        embedder=None,
+        window_size: int = WINDOW_SIZE,
+        baseline_size: int = BASELINE_SIZE,
     ):
         self.embedder = embedder
         self.window_size = window_size
@@ -87,7 +91,9 @@ class DriftDetector:
             self.baseline_count += 1
             if self.baseline_count == self.baseline_size:
                 # Lock in the baseline centroid
-                self.baseline_centroid = self._normalize(self.baseline_sum / self.baseline_size)
+                self.baseline_centroid = self._normalize(
+                    self.baseline_sum / self.baseline_size
+                )
 
         # 2. Update sliding window
         self.recent_embeddings.append(emb)
@@ -98,7 +104,9 @@ class DriftDetector:
         ):
             # Calculate sliding window centroid
             window_sum = np.sum(list(self.recent_embeddings), axis=0)
-            self.recent_centroid = self._normalize(window_sum / len(self.recent_embeddings))
+            self.recent_centroid = self._normalize(
+                window_sum / len(self.recent_embeddings)
+            )
 
             # Cosine similarity (inner product of normalized vectors) -> Cosine distance
             cos_sim = np.dot(self.baseline_centroid, self.recent_centroid)
