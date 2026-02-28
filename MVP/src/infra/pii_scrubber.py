@@ -54,7 +54,6 @@ class PIIScrubber:
         if not text:
             return {"clean_text": text, "pii_found": False, "redactions": []}
 
-        original_text = text
         redactions = []
 
         # 1. Scrape Emails

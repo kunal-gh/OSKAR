@@ -1,8 +1,9 @@
-from typing import Optional, Any
+from typing import Any, Optional
 
 import numpy as np
 
 from src.core.cognitive_engine import CognitiveEngine
+
 
 class RiskFusionEngine:
     def __init__(self, num_simulations=1000):
@@ -62,7 +63,9 @@ class RiskFusionEngine:
         if profile:
             # EU-style hard block for bot-driven hate/misinfo
             # (If mean risk or bot score is extreme, and it's a regulated region)
-            if (mean_risk > (profile.hate_threshold * 0.8) and bot_score > profile.bot_threshold) or (mean_risk > 0.95):
+            if (
+                mean_risk > (profile.hate_threshold * 0.8) and bot_score > profile.bot_threshold
+            ) or (mean_risk > 0.95):
                 route = "hard_block"
             elif mean_risk > profile.hate_threshold:
                 route = "human_review"

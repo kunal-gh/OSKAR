@@ -4,6 +4,9 @@ import time
 from typing import Any, Dict, List, Optional
 
 import fastapi
+import threading
+
+from celery.result import AsyncResult
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
@@ -29,6 +32,7 @@ from src.models.hate_classifier import HateClassifier
 from src.models.multilingual_adapter import MultilingualAdapter
 from src.models.ocr_analyzer import OCRAnalyzer
 from src.models.risk_fusion import RiskFusionEngine
+from src.tasks import async_analyze_audio, async_analyze_image, async_analyze_text
 
 try:
     REQUEST_COUNT = Counter(
@@ -58,12 +62,6 @@ app.add_middleware(
 # Add prometheus asgi middleware
 metrics_app = make_asgi_app()
 app.mount("/metrics", metrics_app)
-
-# Celery Tasks Import
-from src.tasks import async_analyze_text, async_analyze_audio, async_analyze_image
-from celery.result import AsyncResult
-
-import threading
 
 models_loaded = threading.Event()
 
@@ -168,7 +166,6 @@ def analyze_content(req: AnalyzeRequest, api_key: str = fastapi.Security(get_api
         # Phase 21: PII Scrubbing (Run BEFORE any model processing)
         scrub_res = pii_scrubber.scrub(req.text)
         safe_text = scrub_res["clean_text"]
-        pii_metadata = {"pii_found": scrub_res["pii_found"], "redactions": scrub_res["redactions"]}
 
         # 1. Hate Module
         hate_res = hate_clf.predict(safe_text)
@@ -255,7 +252,7 @@ async def analyze_audio(
 ):
     models_loaded.wait()
     """
-    Whisper audio analysis endpoint. Receives multipart audio, transcribes, 
+    Whisper audio analysis endpoint. Receives multipart audio, transcribes,
     and passes text to the main risk pipeline.
     """
     ALLOWED = {".mp3", ".mp4", ".wav", ".m4a", ".ogg", ".flac", ".webm"}
@@ -338,7 +335,7 @@ async def analyze_image(
 ):
     models_loaded.wait()
     """
-    Tesseract OCR image analysis endpoint. 
+    Tesseract OCR image analysis endpoint.
     Multimodal image/meme analysis endpoint.
     Upload any image (png, jpg, jpeg, gif, bmp, tiff, webp).
     Tesseract OCR extracts text, then the full OSKAR pipeline runs on it.
@@ -403,7 +400,7 @@ async def analyze_image(
             }
 
         result = ocr_analyzer.analyze(
-            tmp_path, user_id=user_id, psm=psm, lang=lang, analyze_fn=_run_pipeline
+            tmp_path, user_id=user_id, psm=3, lang="eng", analyze_fn=_run_pipeline
         )
         REQUEST_COUNT.labels("POST", "/analyze/image", 200).inc()
         return result
@@ -550,6 +547,7 @@ if os.path.isdir(DASHBOARD_DIR):
 
 # ─── Task Management (v1.0 Microservices) ───────────────────────
 
+
 @app.get("/tasks/{task_id}")
 def get_task_status(task_id: str, api_key: str = fastapi.Security(get_api_key)):
     """
@@ -569,9 +567,7 @@ def analyze_content_async(req: AnalyzeRequest, api_key: str = fastapi.Security(g
     """
     Asynchronous version of /analyze. Returns a task_id immediately.
     """
-    task = async_analyze_text.delay(
-        req.user_id, req.text, req.social_context, req.temporal_events
-    )
+    task = async_analyze_text.delay(req.user_id, req.text, req.social_context, req.temporal_events)
     return {"task_id": task.id, "status": "PENDING"}
 
 

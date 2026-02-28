@@ -1,12 +1,13 @@
 import json
-import os
 import logging
-from typing import Optional, List, Dict
+import os
+from typing import Dict, List, Optional
+
 import numpy as np
 import torch
-from sentence_transformers import SentenceTransformer
 from qdrant_client import QdrantClient
 from qdrant_client.http import models as qmodels
+from sentence_transformers import SentenceTransformer
 
 SBERT_MODEL = "sentence-transformers/all-mpnet-base-v2"
 QDRANT_HOST = os.getenv("QDRANT_HOST", "localhost")
@@ -55,7 +56,9 @@ class EvidenceRetrieval:
         if not exists:
             self.qdrant.create_collection(
                 collection_name=COLLECTION_NAME,
-                vectors_config=qmodels.VectorParams(size=self.dim, distance=qmodels.Distance.COSINE),
+                vectors_config=qmodels.VectorParams(
+                    size=self.dim, distance=qmodels.Distance.COSINE
+                ),
             )
 
     # ------------------------------------------------------------------
@@ -71,16 +74,12 @@ class EvidenceRetrieval:
 
         points = [
             qmodels.PointStruct(
-                id=hash(text) % (2**63), # Simple hash for demo
-                vector=emb,
-                payload={"text": text}
-            ) for text, emb in zip(texts, embeddings)
+                id=hash(text) % (2**63), vector=emb, payload={"text": text}  # Simple hash for demo
+            )
+            for text, emb in zip(texts, embeddings)
         ]
 
-        self.qdrant.upsert(
-            collection_name=COLLECTION_NAME,
-            points=points
-        )
+        self.qdrant.upsert(collection_name=COLLECTION_NAME, points=points)
 
     def retrieve(self, query: str, top_k: int = TOP_K_DEFAULT) -> List[Dict]:
         if not self.qdrant:
@@ -88,19 +87,9 @@ class EvidenceRetrieval:
 
         q_emb = self.encoder.encode([query], convert_to_numpy=True)[0].tolist()
 
-        hits = self.qdrant.search(
-            collection_name=COLLECTION_NAME,
-            query_vector=q_emb,
-            limit=top_k
-        )
+        hits = self.qdrant.search(collection_name=COLLECTION_NAME, query_vector=q_emb, limit=top_k)
 
-        return [
-            {
-                "id": hit.id,
-                "text": hit.payload["text"],
-                "score": hit.score
-            } for hit in hits
-        ]
+        return [{"id": hit.id, "text": hit.payload["text"], "score": hit.score} for hit in hits]
 
     def verify_claim(self, claim: str) -> dict:
         """

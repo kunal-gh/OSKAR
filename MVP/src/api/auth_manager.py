@@ -1,3 +1,4 @@
+import os
 from enum import Enum
 
 from fastapi import HTTPException, Security, status
@@ -9,8 +10,6 @@ class UserRole(str, Enum):
     ANALYST = "analyst"
     SYSTEM = "system"
 
-
-import os
 
 # All keys are loaded exclusively from environment variables.
 # Never commit actual values here — use a .env file locally and Vault/GCP Secret Manager in production.

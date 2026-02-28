@@ -1,13 +1,15 @@
 import datetime
 import logging
-from src.infra.redis_cache import redis_cache
+
 from src.infra.postgres_db import SessionLocal, UserTrust, init_db
+from src.infra.redis_cache import redis_cache
 
 # Ensure DB tables exist on first import
 try:
     init_db()
 except Exception as e:
     logging.warning(f"[TrustEngine] Could not initialize Postgres: {e}")
+
 
 class TrustEngine:
     """
@@ -86,5 +88,5 @@ class TrustEngine:
         return 1.5 - trust_score
 
     def __del__(self):
-        if hasattr(self, 'db'):
+        if hasattr(self, "db"):
             self.db.close()
